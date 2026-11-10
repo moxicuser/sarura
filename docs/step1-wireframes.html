@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SARURA — Step 1 Wireframes (mobile-first)</title>
+<style>
+  :root {
+    --green: #247A45;
+    --green-dark: #185C35;
+    --green-light: #E8F5E9;
+    --page: #F4F6F4;
+    --border: #DCE3DD;
+    --gray: #5F6B63;
+    --text: #24332B;
+    --red: #DC2626;
+    --amber: #B45309;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Inter, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--page);
+    color: var(--text);
+    line-height: 1.5;
+    padding: 24px 16px 64px;
+    max-width: 1240px;
+    margin: 0 auto;
+  }
+  h1 { font-size: 24px; margin-bottom: 4px; }
+  .sub { color: var(--gray); font-size: 13px; margin-bottom: 20px; }
+  h2.group {
+    font-size: 18px; margin: 40px 0 6px; padding-bottom: 6px;
+    border-bottom: 3px solid var(--green); max-width: 320px;
+  }
+  .group-sub { color: var(--gray); font-size: 12px; margin-bottom: 18px; }
+
+  /* palette legend */
+  .swatches { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .sw { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: #fff; width: 172px; }
+  .sw .c { height: 40px; }
+  .sw .t { padding: 6px 8px; font-size: 10px; color: var(--gray); line-height: 1.35; }
+  .sw .t b { color: var(--text); font-size: 11px; display: block; }
+
+  .tokens {
+    background: #fff; border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px 14px; font-size: 12px; color: var(--gray); margin-bottom: 28px;
+  }
+  .tokens b { color: var(--text); }
+
+  .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 40px 28px; }
+  figure.shot { display: flex; flex-direction: column; gap: 10px; }
+  .phone {
+    width: 320px; max-width: 100%; align-self: center;
+    border: 10px solid var(--text); border-radius: 30px; background: #fff;
+    overflow: hidden; box-shadow: 0 8px 18px rgba(0,0,0,.10);
+  }
+  .screen { display: flex; flex-direction: column; min-height: 540px; background: #fff; }
+  figcaption { font-size: 12px; color: var(--gray); max-width: 360px; margin: 0 auto; }
+  figcaption strong { color: var(--text); font-size: 13px; display: block; margin-bottom: 4px; }
+  figcaption ul { padding-left: 16px; }
+  figcaption li { margin-bottom: 2px; }
+
+  /* wireframe atoms */
+  .appbar { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  .logo { display: flex; align-items: center; gap: 5px; font-weight: 800; color: var(--green); font-size: 13px; letter-spacing: .3px; }
+  .logo .mark { width: 14px; height: 14px; background: var(--green); border-radius: 4px; }
+  .navlink { font-size: 10px; color: var(--gray); }
+  .lang { margin-left: auto; font-size: 9px; color: var(--gray); border: 1px solid var(--border); border-radius: 99px; padding: 2px 7px; white-space: nowrap; }
+  .btn-login { background: var(--green); color: #fff; font-size: 10px; padding: 5px 9px; border-radius: 8px; white-space: nowrap; }
+
+  .hero { background: var(--green-light); padding: 16px 12px; }
+  .hero h1 { font-size: 17px; line-height: 1.25; margin-bottom: 4px; }
+  .hero p { font-size: 11px; color: var(--gray); margin-bottom: 10px; }
+
+  .search { display: flex; align-items: center; gap: 6px; border: 1px solid var(--border); border-radius: 10px; padding: 9px 10px; background: #fff; color: var(--gray); font-size: 11px; margin-bottom: 10px; }
+  .chips { display: flex; gap: 6px; padding: 10px 12px 4px; flex-wrap: wrap; }
+  .chip { font-size: 10px; border: 1px solid var(--border); border-radius: 99px; padding: 4px 9px; color: var(--text); white-space: nowrap; }
+  .chip.active { background: var(--green); color: #fff; border-color: var(--green); }
+
+  .section-h { font-size: 13px; font-weight: 700; padding: 12px 12px 6px; display: flex; justify-content: space-between; align-items: baseline; }
+  .section-h .more { font-size: 10px; color: var(--green); font-weight: 600; }
+
+  .card { border: 1px solid var(--border); border-radius: 10px; background: #fff; margin: 0 12px 10px; overflow: hidden; }
+  .card .thumb { background: var(--page); height: 86px; display: flex; align-items: center; justify-content: center; color: var(--gray); font-size: 10px; }
+  .card .body { padding: 8px 10px; }
+  .row { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+  .crop { font-size: 12px; font-weight: 700; }
+  .price { font-weight: 700; font-size: 12px; white-space: nowrap; }
+  .meta { font-size: 10px; color: var(--gray); margin-top: 2px; }
+  .badge { background: var(--green-light); color: var(--green-dark); font-size: 9px; padding: 2px 7px; border-radius: 99px; display: inline-flex; gap: 3px; align-items: center; font-weight: 600; white-space: nowrap; }
+  .badge::before { content: "✓"; font-weight: 800; }
+
+  .btn { background: var(--green); color: #fff; min-height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; margin: 8px 12px; }
+  .btn.sec { background: #fff; color: var(--green); border: 1.5px solid var(--green); }
+  .btn.ter { background: transparent; color: var(--gray); font-weight: 500; min-height: 40px; }
+  .btn.danger { background: #fff; color: var(--red); border: 1.5px solid var(--red); }
+  .btn.small { min-height: 34px; font-size: 11px; margin: 0; padding: 0 12px; display: inline-flex; border-radius: 8px; }
+  .btn-row { display: flex; gap: 8px; margin: 8px 12px; }
+  .btn-row .btn { flex: 1; margin: 0; }
+
+  .field { display: flex; flex-direction: column; gap: 4px; margin: 0 12px 10px; }
+  .field label { font-size: 11px; font-weight: 600; }
+  .field .req { color: var(--red); }
+  .input { border: 1px solid var(--border); border-radius: 10px; min-height: 44px; display: flex; align-items: center; padding: 0 10px; color: var(--gray); font-size: 11px; background: #fff; justify-content: space-between; }
+  .input.err { border-color: var(--red); }
+  .err { color: var(--red); font-size: 10px; }
+  .hint { font-size: 9.5px; color: var(--gray); }
+
+  .pill { font-size: 9px; padding: 3px 8px; border-radius: 99px; border: 1px solid var(--gray); color: var(--gray); white-space: nowrap; }
+  .pill.pending { color: var(--amber); border-color: var(--amber); background: #fff; font-weight: 700; }
+  .pill.ok { color: var(--green-dark); border-color: var(--green-dark); font-weight: 700; }
+  .pill.bad { color: var(--red); border-color: var(--red); font-weight: 700; }
+
+  .tabs { display: flex; border-top: 1px solid var(--border); padding: 6px 0 8px; background: #fff; margin-top: auto; }
+  .tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 9px; color: var(--gray); }
+  .tab .ic { width: 16px; height: 16px; border-radius: 5px; background: var(--border); }
+  .tab.active { color: var(--green); font-weight: 700; }
+  .tab.active .ic { background: var(--green); }
+
+  .wf-footer { background: var(--green-dark); color: #fff; padding: 14px 12px; font-size: 10px; margin-top: auto; }
+  .wf-footer .links { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 8px; }
+  .wf-footer .links span { text-decoration: underline; opacity: .9; }
+
+  .modal { background: rgba(36,51,43,.55); flex: 1; display: flex; align-items: center; padding: 20px 16px; }
+  .sheet { background: #fff; border-radius: 14px; padding: 16px; width: 100%; }
+  .sheet h3 { font-size: 14px; margin-bottom: 4px; }
+  .sheet p { font-size: 11px; color: var(--gray); margin-bottom: 6px; }
+
+  .lrow { display: flex; gap: 10px; padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 11px; align-items: center; background: #fff; }
+  .lrow .grow { flex: 1; min-width: 0; }
+  .avatar { width: 30px; height: 30px; border-radius: 99px; background: var(--green-light); color: var(--green-dark); font-weight: 700; font-size: 10px; display: flex; align-items: center; justify-content: center; flex: none; }
+  .avatar.sq { border-radius: 7px; background: var(--page); border: 1px solid var(--border); color: var(--gray); }
+  .notecount { background: var(--green); color: #fff; font-size: 9px; border-radius: 99px; padding: 1px 6px; font-weight: 700; }
+  .small-actions { display: flex; gap: 12px; margin-top: 3px; }
+  .small-actions span { font-size: 9.5px; color: var(--red); font-weight: 600; }
+  .small-actions span.g { color: var(--green); }
+
+  .bubble { max-width: 78%; padding: 8px 10px; border-radius: 12px; font-size: 11px; margin: 0 12px 8px; width: fit-content; }
+  .bubble.them { background: var(--page); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+  .bubble.me { background: var(--green); color: #fff; border-bottom-right-radius: 4px; margin-left: auto; }
+  .chat-input { display: flex; gap: 8px; padding: 8px 12px 12px; border-top: 1px solid var(--border); align-items: center; }
+  .chat-input .input { flex: 1; min-height: 40px; }
+  .send { width: 40px; height: 40px; border-radius: 99px; background: var(--green); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; flex: none; }
+
+  .pg-title { font-size: 15px; font-weight: 800; padding: 12px 12px 4px; }
+  .prose { padding: 4px 12px 12px; font-size: 11px; color: var(--text); }
+  .prose h3 { font-size: 12px; margin: 10px 0 3px; }
+  .prose p { margin-bottom: 6px; color: var(--gray); }
+  .sep { border: 0; border-top: 1px solid var(--border); margin: 8px 12px; }
+
+  .steps { padding: 4px 12px 10px; }
+  .step { display: flex; gap: 10px; margin-bottom: 10px; font-size: 11px; }
+  .step .n { width: 22px; height: 22px; border-radius: 99px; background: var(--green); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; flex: none; }
+  .step b { display: block; font-size: 12px; }
+  .step span { color: var(--gray); }
+
+  .stats { display: flex; gap: 8px; margin: 4px 12px 10px; }
+  .stat { flex: 1; border: 1px solid var(--border); border-radius: 10px; padding: 8px; text-align: center; }
+  .stat .v { font-size: 16px; font-weight: 800; color: var(--green-dark); }
+  .stat .l { font-size: 9px; color: var(--gray); }
+
+  .note-box { background: var(--page); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; font-size: 10px; color: var(--gray); margin: 6px 12px 8px; }
+  .note-box b { color: var(--text); }
+
+  .photo-add { display: flex; gap: 8px; margin: 4px 12px 10px; }
+  .photo-add .p { width: 54px; height: 54px; border: 1px dashed var(--border); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--gray); font-size: 9px; background: var(--page); }
+  .photo-add .p.first { border-style: solid; }
+
+  .radio { display: flex; gap: 6px; margin: 4px 12px 10px; }
+  .radio .r { flex: 1; border: 1.5px solid var(--green); border-radius: 10px; padding: 8px; font-size: 11px; text-align: center; color: var(--green-dark); font-weight: 600; }
+
+  .big-choice { border: 1.5px solid var(--border); border-radius: 12px; padding: 14px; margin: 0 12px 12px; text-align: center; }
+  .big-choice.active { border-color: var(--green); background: var(--green-light); }
+  .big-choice b { font-size: 13px; display: block; margin-bottom: 2px; }
+  .big-choice span { font-size: 10px; color: var(--gray); }
+
+  .timeline { padding: 4px 12px 8px; }
+  .timeline .t { display: flex; gap: 8px; font-size: 10px; color: var(--gray); padding: 3px 0; }
+  .timeline .t::before { content: "●"; color: var(--green); font-size: 8px; margin-top: 2px; }
+  .timeline .t.amber::before { color: var(--amber); }
+  .timeline .t.bad::before { color: var(--red); }
+</style>
+</head>
+<body>
+
+<h1>SARURA — Step 1 Wireframes</h1>
+<p class="sub">Mobile-first sketches for every page in Development Guide section 4.
+Built with the exact section-5 palette. Labels are in English here; the real site is
+Kinyarwanda-first with an EN/RW toggle (see <code>docs/step1-translations.md</code>).</p>
+
+<div class="swatches">
+  <div class="sw"><div class="c" style="background:#247A45"></div><div class="t"><b>Primary green</b>#247A45 — buttons, links, brand</div></div>
+  <div class="sw"><div class="c" style="background:#185C35"></div><div class="t"><b>Dark green</b>#185C35 — header/footer, hover</div></div>
+  <div class="sw"><div class="c" style="background:#E8F5E9"></div><div class="t"><b>Light green</b>#E8F5E9 — badges, soft blocks</div></div>
+  <div class="sw"><div class="c" style="background:#FFFFFF;border-bottom:1px solid #DCE3DD"></div><div class="t"><b>White</b>#FFFFFF — page &amp; cards (~60%)</div></div>
+  <div class="sw"><div class="c" style="background:#F4F6F4"></div><div class="t"><b>Section gray</b>#F4F6F4 — section background</div></div>
+  <div class="sw"><div class="c" style="background:#DCE3DD"></div><div class="t"><b>Border gray</b>#DCE3DD — borders, dividers</div></div>
+  <div class="sw"><div class="c" style="background:#5F6B63"></div><div class="t"><b>Medium gray</b>#5F6B63 — secondary text</div></div>
+  <div class="sw"><div class="c" style="background:#24332B"></div><div class="t"><b>Dark gray</b>#24332B — text, headings</div></div>
+  <div class="sw"><div class="c" style="background:#DC2626"></div><div class="t"><b>Red</b>#DC2626 — errors &amp; danger only</div></div>
+  <div class="sw"><div class="c" style="background:#B45309"></div><div class="t"><b>Amber</b>#B45309 — pending status only (always with a word)</div></div>
+</div>
+
+<div class="tokens">
+  <b>Tokens:</b> font Inter (system fallback) · body ≥16px on the real site (reduced here to fit
+  phone mockups) · buttons ≥44px tall · radius 8–12px · one primary green button per screen ·
+  statuses always as word + color, never color alone · all main text colors pass 4.5:1 on white
+  (re-check with a contrast checker before release, per guide section 5).
+</div>
+
+<h2 class="group">1. Public pages</h2>
+<p class="group-sub">No login needed. Header links: Marketplace, How It Works, Sell on SARURA, Login/Register.</p>
+
+<div class="gallery">
+
+  <!-- HOME -->
+  <figure class="shot">
+    <div class="phone"><div class="screen">
+      <div class="appbar">
+        <div class="logo"><span class="mark"></span>SARURA</div>
+        <span class="navlink">Marketplace</span>
+        <span class="lang">EN | RW</span>
+        <span class="btn-login">Log in</span>
+      </div>
+      <div class="hero">
+        <h1>Fresh produce, straight from Rwandan farmers</h1>
+        <p>Browse free. Negotiate directly. No middlemen.</p>
+        <div class="search">🔍 Search crops, e.g. beans</div>
+        <div class="btn">Search</div>
+      </div>
+      <div class="chips">
+        <span class="chip active">All</span><span class="chip">Vegetables</span><span class="chip">Fruits</span>
+        <span class="chip">Grains</span><span class="chip">Tubers</span><span class="chip">Other</span>
+      </div>
+      <div class="section-h">Latest listings <span class="more">See all →</span></div>
+      <div class="card">
+        <div class="thumb">photo</div>
+        <div class="body">
+          <div class="row"><span class="crop">Irish potato</span><span class="price">400 RWF/kg</span></div>
+          <div class="row"><span class="meta">2,000 kg · Musanze</span><span class="badge">Verified</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="thumb">photo</div>
+        <div class="body">
+          <div class="row"><span class="crop">Beans</span><span class="price">900 RWF/kg</span></div>
+          <div class="row"><span class="meta">500 kg · Huye</span></div>
+        </div>
+      </div>
+      <div class="section-h">How it works</div>
+      <div class="steps">
+        <div class="step"><span class="n">1</span><div><b>Browse</b><span>See what farmers have, free.</span></div></div>
+        <div class="step"><span class="n">2</span><div><b>Negotiate</b><span>Chat about price and quantity.</span></div></div>
+        <div class="step"><span class="n">3</span><div><b>Agree</b><span>Confirm the order together.</span></div></div>
+      </div>
+      <div class="wf-footer">
+        <div class="links"><span>About</span><span>Contact</span><span>Privacy Policy</span><span>Platform Policies</span></div>
+        SARURA · Kigali, Rwanda · Kinyarwanda &amp; English
+      </div>
+    </div></div>
+    <figcaption><strong>Home</strong><ul>
+      <li>Hero + search bar; searching from here goes to /marketplace with the query.</li>
+      <li>Popular categories as chips; latest listings (2 shown here, 12–24 per page real).</li>
+      <li>Two CTAs: search (buyer) and “Sell on SARURA” (farmer, in header).</li>
+      <li>Footer: dark green, white links.</li>
+    </ul></figcaption>
+  </figure>
+
+  <!-- MARKETPLACE -->
+  <figure class="shot">
+    <div class="phone"><div class="screen">
+      <div class="appbar">
+        <div class="logo"><span class="mark"></span>SARURA</div>
+        <span class="navlink">How It Works</span>
+        <span class="lang">EN | RW</span>
+        <span class="btn-login">Log in</span>
+      </div>
+      <div style="padding:10px 12px 0">
+        <div class="search" style="margin-bottom:8px">🔍 beans</div>
+      </div>
+      <div class="chips" style="padding-top:6px">
+        <span class="chip active">Filters ▾</span><span class="chip">Category: All ▾</span>
+        <span class="chip">District ▾</span><span class="chip">Sort: Newest ▾</span>
+      </div>
+      <div class="meta" style="padding:0 12px 4px">14 results</div>
+      <div class="card">
+        <div class="thumb">photo</div>
+        <div class="body">
+          <div class="row"><span class="crop">Beans</span><span class="price">900 RWF/kg</span></div>
+          <div class="row"><span class="meta">500 kg · Huye</span><span class="badge">Verified</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="thumb">photo</div>
+        <div class="body">
+          <div class="row"><span class="crop">Beans</span><span class="price">850 RWF/kg</span></div>
+          <div class="row"><span class="meta">1,200 kg · Nyagatare</span></div>
+        </div>
+      </div>
+      <div class="note-box">Empty state: <b>“No potatoes available in this district yet.”</b> with a “clear filters” link.</div>
+      <div class="btn-row"><span class="btn sec" style="flex:1">← Previous</span><span class="btn sec" style="flex:1">Next →</span></div>
+      <div class="wf-footer"><div class="links"><span>About</span><span>Contact</span><span>Privacy Policy</span><span>Platform Policies</span></div>SARURA</div>
+    </div></div>
+    <figcaption><strong>Marketplace (/marketplace)</strong><ul>
+      <li>Search by crop name; filters: category, district, price range, min quantity, verified only.</li>
+      <li>Sort: newest, lowest price, nearest district. Paginated (24 per page).</li>
+      <li>Each card links to /products/:id. Cards show photo, crop, bold price, quantity, district, badge.</li>
+      <li>Thumbnails are small (low-data); result count always visible.</li>
+    </ul></figcaption>
+  </figure>
+
+  <!-- PRODUCT DETAIL -->
+  <figure class="shot">
+    <div class="phone"><div class="screen">
+      <div class="appbar">
+        <div class="logo"><span class="mark"></span>SARURA</div>
+        <span class="lang">EN | RW</span>
+        <span class="btn-login">Log in</span>
+      </div>
+      <div class="card" style="margin-top:10px">
+        <div class="thumb" style="height:120px">photo · photo · photo</div>
+      </div>
+      <div class="pg-title">Irish potato <span class="badge">Verified</span></div>
+      <div style="padding:0 12px">
+        <div class="price" style="font-size:16px">400 RWF/kg</div>
+        <div class="meta">2,000 kg available · Musanze, Kinigi sector · price basis: <b>negotiable</b></div>
+      </div>
+      <div class="lrow">
+        <div class="avatar">UM</div>
+        <div class="grow"><b>Umutara Cooperative</b><div class="meta">Farmer · Musanze · 6 active listings</div></div>
+        <span class="navlink">Profile →</span>
+      </div>
+      <div class="prose"><p>Fresh Irish potatoes from the volcanic soils of Musanze. Available from 15 Nov. Buyer arranges transport or pickup at the farm.</p></div>
+      <div class="note-box"><b>Safety tips:</b> meet in public places · check produce before paying · never send money to strangers. SARURA does not handle payments.</div>
+      <div class="btn">Negotiate</div>
+      <div class="btn sec">♡ Save product</div>
+      <div class="btn ter">Report this listing</div>
+      <div class="wf-footer"><div class="links"><span>About</span><span>Contact</span><span>Privacy Policy</span><span>Platform Policies</span></div>SARURA</div>
+    </div></div>
+    <figcaption><strong>Product details (/products/:id)</strong><ul>
+      <li>Photos (max 5), bold price with unit, quantity with unit, district + sector.</li>
+      <li>Farmer row links to public profile — no phone number shown anywhere.</li>
+      <li>Primary green button: Negotiate. One primary action only.</li>
+      <li>Safety tips sit next to the negotiate box (guide sections 3, 9).</li>
+    </ul></figcaption>
+  </figure>
+
+  <!-- LOGIN GATE -->
+  <figure class="shot">
+    <div class="phone"><div class="screen">
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div></div>
+      <div class="modal">
+        <div class="sheet">
+          <h3>Log in or create a free buyer account to negotiate.</h3>
+          <p>You will come straight back to this product.</p>
+          <div class="btn" style="margin:10px 0 8px">Log in</div>
+          <div class="btn sec" style="margin:0 0 10px">Create a free buyer account</div>
+          <div class="btn ter" style="margin:0">Keep browsing</div>
+        </div>
+      </div>
+    </div></div>
+    <figcaption><strong>Login gate (modal on /products/:id)</strong><ul>
+      <li>Appears when a visitor clicks <b>Negotiate</b> while logged out.</li>
+      <li>The current product URL is saved as a “return to” address before redirecting (guide section 4).</li>
+      <li>After login/registration the buyer returns and the negotiation box opens.</li>
+      <li>New buyer accounts land in the buyer dashboard from then on.</li>
+    </ul></figcaption>
+  </figure>
+
+  <!-- FARMER PROFILE -->
+  <figure class="shot">
+    <div class="phone"><div class="screen">
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang">EN | RW</span></div>
+      <div style="display:flex;gap:10px;padding:14px 12px 6px;align-items:center">
+        <div class="avatar" style="width:52px;height:52px;font-size:14px">UM</div>
+        <div><b style="font-size:14px">Umutara Cooperative</b> <span class="badge">Verified</span>
+        <div class="meta">Musanze district · farmer since 2026</div></div>
+      </div>
+      <div class="prose"><p>We are 24 farmers growing Irish potato, beans and maize in Kinigi. We sell in lots from 100 kg.</p></div>
+      <div class="section-h">Active listings (6)</div>
+      <div class="card"><div class="body">
+        <div class="row"><span class="crop">Irish potato</span><span class="price">400 RWF/kg</span></div>
+        <div class="meta">2,000 kg · Musanze</div>
+      </div></div>
+      <div class="card"><div class="body">
+        <div class="row"><span class="crop">Maize</span><span class="price">550 RWF/kg</span></div>
+        <div class="meta">3,500 kg · Musanze</div>
+      </div></div>
+      <div class="wf-footer"><div class="links"><span>About</span><span>Contact</span><span>Privacy Policy</span><span>Platform Policies</span></div>SARURA</div>
+    </div></div>
+    <figcaption><strong>Public farmer profile (/farmers/:id)</strong><ul>
+      <li>Shows name, district, verification badge, bio, active listings.</li>
+      <li><b>No phone number or email</b> — contact starts with a chat.</li>
+    </ul></figcaption>
+  </figure>
+
+  <!-- HOW IT WORKS -->
+  <figure class="shot">
+    <div class="phone"><div class="screen">
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang">EN | RW</span></div>
+      <div class="pg-title">How It Works</div>
+      <div class="section-h">For farmers</div>
+      <div class="steps">
+        <div class="step"><span class="n">1</span><div><b>Register</b><span>Create a free farmer account.</span></div></div>
+        <div class="step"><span class="n">2</span><div><b>List produce</b><span>Crop, quantity, price, district.</span></div></div>
+        <div class="step"><span class="n">3</span><div><b>Answer buyers</b><span>Negotiate and agree orders.</span></div></div>
+      </div>
+      <div class="section-h">For buyers</div>
+      <div class="steps">
+        <div class="step"><span class="n">1</span><div><b>Browse</b><span>Search produce near you, free.</span></div></div>
+        <div class="step"><span class="n">2</span><div><b>Negotiate</b><span>Chat with the farmer about price and quantity.</span></div></div>
+        <div class="step"><span class="n">3</span><div><b>Agree on the order</b><span>Both sides confirm, then meet and pay.</span></div></div>
+      </div>
+      <div class="btn">Start browsing</div>
+      <div class="btn sec">Sell on SARURA</div>
+      <div class="wf-footer"><div class="links"><span>About</span><span>Contact</span><span>Privacy Policy</span><span>Platform Policies</span></div>SARURA</div>
+    </div></div>
+    <figcaption><strong>How It Works (/how-it-works)</strong><ul>
+      <li>Exactly three steps for farmers and three for buyers (guide section 11).</li>
+    </ul></figcaption>
+  </figure>
+
+  <!-- ABOUT -->
+  <figure class="shot">
+    <div class="phone"><div class="screen">
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang">EN | RW</span></div>
+      <div class="pg-title">About Us</div>
+      <div class="prose">
+        <h3>The problem</h3>
+        <p>Farmers struggle to find fair buyers. Buyers struggle to find reliable supply.</p>
+        <h3>Our solution</h3>
+        <p>SARURA connects them directly, with no middlemen taking a cut.</p>
+        <h3>How it works</h3>
+        <p>List — discover — negotiate.</p>
+        <h3>Our mission</h3>
+        <p>A fair market for every Rwandan farmer, on any phone.</p>
+        <h3>Founder story</h3>
+        <p>(short paragraph)</p>
+      </div>
+      <div class="wf-footer"><div class="links"><span>About</span><span>Contact</span><span>Privacy Policy</span><span>Platform Policies</span></div>SARURA</div>
+    </div></div>
+    <figcaption><strong>About Us (/about)</strong><ul>
+      <li>Content blocks exactly as listed in guide section 11.</li>
+    </ul></figcaption>
+  </figure>
+
+  <!-- CONTACT -->
+  <figure class="shot">
+    <div class="phone"><div class="screen">
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang">EN | RW</span></div>
+      <div class="pg-title">Contact Us</div>
+      <div class="field"><label>Name <span class="req">*</span></label><div class="input">Your name</div></div>
+      <div class="field"><label>Email <span class="req">*</span></label><div class="input">you@example.com</div></div>
+      <div class="field"><label>Subject <span class="req">*</span></label><div class="input">How can we help?</div></div>
+      <div class="field"><label>Message <span class="req">*</span></label><div class="input" style="min-height:70px;align-items:flex-start;padding-top:8px">Your message…</div></div>
+      <div class="field"><label style="opacity:0">hidden spam trap</label><div class="input" style="visibility:hidden">leave empty</div></div>
+      <div class="btn">Send message</div>
+      <div class="prose">
+        <p>📧 hello@sarura.rw &nbsp; 📱 +250 7X XXX XXX (WhatsApp)</p>
+        <p>📍 Kigali, Rwanda</p>
+      </div>
+      <div class="wf-footer"><div class="links"><span>About</span><span>Contact</span><span>Privacy Policy</span><span>Platform Policies</span></div>SARURA</div>
+    </div></div>
+    <figcaption><strong>Contact Us (/contact)</strong><ul>
+      <li>Saves to contact_messages, emails the admin, hidden spam trap + rate limit (guide Step 7).</li>
+    </ul></figcaption>
+  </figure>
+
+  <!-- PRIVACY / POLICIES -->
+  <figure class="shot">
+    <div class="phone"><div class="screen">
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang">EN | RW</span></div>
+      <div class="pg-title">Privacy Policy</div>
+      <div class="prose">
+        <h3>What we collect</h3><p>Name, phone, email, location, listings — only to run your account and the marketplace.</p>
+        <h3>Who can see it</h3><p>Your phone and email are never shown publicly. Chats are stored on our server, readable only by the two people in the conversation, and by admins only for reports or security.</p>
+        <h3>How long we keep it</h3><p>Account data until you delete it. Conversations with no activity for 12 months are removed.</p>
+        <h3>Editing or deleting your account</h3><p>You can edit your profile anytime and delete your account from the profile page.</p>
+        <h3>Contact us about privacy</h3><p>privacy@sarura.rw</p>
+      </div>
+      <div class="wf-footer"><div class="links"><span>About</span><span>Contact</span><span>Privacy Policy</span><span>Platform Policies</span></div>SARURA</div>
+    </div></div>
+    <figcaption><strong>Privacy Policy &amp; Platform Policies</strong><ul>
+      <li>Same layout for both content pages (/privacy, /policies).</li>
+      <li>Privacy: data, purpose, visibility, retention, deletion (guide section 11).</li>
+      <li>Policies: honest listings, no fraud, reports, cancellations, suspensions.</li>
+      <li>No disclaimer page exists (guide decision).</li>
+    </ul></figcaption>
+  </figure>
+
+  <!-- LOGIN -->
+  <figure class="shot">
+    <div class="phone"><div class="screen">
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang">EN | RW</span></div>
+      <div class="pg-title">Log in</div>
+      <div class="field" style="margin-top:8px"><label>Email <span class="req">*</span></label><div class="input">you@example.com</div></div>
+      <div class="field"><label>Password <span class="req">*</span></label><div class="input">•••••••• &nbsp; show</div></div>
+      <div class="btn">Log in</div>
+      <div class="btn ter" style="min-height:36px">Forgot your password?</div>
+      <div class="btn sec">Create a free account</div>
+      <div class="wf-footer"><div class="links"><span>About</span><span>Contact</span><span>Privacy Policy</span><span>Platform Policies</span></div>SARURA</div>
+    </div></div>
+    <figcaption><strong>Login (/login)</strong><ul>
+      <li>Also: rate-limited; common-password blocking at registration.</li>
+      <li>After login, return to the saved “return to” URL if one exists.</li>
+    </ul></figcaption>
+  </figure>
+
+  <!-- REGISTER CHOICE -->
+  <figure class="shot">
+    <div class="phone"><div class="screen">
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang">EN | RW</span></div>
+      <div class="pg-title">Create your account</div>
+      <p class="meta" style="padding:0 12px 8px">First, tell us who you are:</p>
+      <div class="big-choice active"><b>I am a buyer</b><span>I want to find and buy produce</span></div>
+      <div class="big-choice"><b>I am a farmer</b><span>I want to list and sell my produce</span></div>
+      <div class="btn">Continue</div>
+      <div class="wf-footer"><div class="links"><span>About</span><span>Contact</span><span>Privacy Policy</span><span>Platform Policies</span></div>SARURA</div>
+    </div></div>
+    <figcaption><strong>Register — role choice (/register)</strong><ul>
+      <li>The register page asks: “I am a buyer” or “I am a farmer” (guide section 4).</li>
+      <li>A buyer created through the login gate lands in the buyer dashboard.</li>
+    </ul></figcaption>
+  </figure>
+
+  <!-- REGISTER BUYER FORM -->
+  <figure class="shot">
+    <div class="phone"><div class="screen">
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang">EN | RW</span></div>
+      <div class="pg-title">Create your buyer account</div>
+      <p class="meta" style="padding:0 12px 6px">Free. You can browse without an account; you need one to negotiate.</p>
+      <div class="field"><label>Full name <span class="req">*</span></label><div class="input">Amazina yombi</div></div>
+      <div class="field"><label>Email <span class="req">*</span></label><div class="input err">you@example.com</div><span class="err">Enter a valid email address.</span></div>
+      <div class="field"><label>Phone <span class="req">*</span></label><div class="input">+250 7…</div><span class="hint">Never shown publicly.</span></div>
+      <div class="field"><label>Password <span class="req">*</span></label><div class="input">••••••••</div><span class="hint">At least 8 characters.</span></div>
+      <div class="field"><label>Language</label><div class="input">Kinyarwanda &nbsp; ▾</div></div>
+      <div class="btn">Create free account</div>
+      <div class="btn ter" style="min-height:36px">Already have an account? Log in</div>
+      <div class="wf-footer"><div class="links"><span>About</span><span>Contact</span><span>Privacy Policy</span><span>Platform Policies</span></div>SARURA</div>
+    </div></div>
+    <figcaption><strong>Register — buyer form</strong><ul>
+      <li>Farmer form adds: farm/cooperative name (required) and short bio (optional).</li>
+      <li>Labels above fields; red errors under fields (guide section 5).</li>
+      <li>Registering as a buyer opens the buyer dashboard.</li>
+    </ul></figcaption>
+  </figure>
+
+  <!-- RESET PASSWORD -->
+  <figure class="shot">
+    <div class="phone"><div class="screen">
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang">EN | RW</span></div>
+      <div class="pg-title">Reset your password</div>
+      <p class="meta" style="padding:0 12px 8px">We will email you a link. It works once and expires after 30 minutes.</p>
+      <div class="field"><label>Email <span class="req">*</span></label><div class="input">you@example.com</div></div>
+      <div class="btn">Send reset link</div>
+      <div class="btn ter" style="min-height:36px">Back to login</div>
+      <div class="wf-footer"><div class="links"><span>About</span><span>Contact</span><span>Privacy Policy</span><span>Platform Policies</span></div>SARURA</div>
+    </div></div>
+    <figcaption><strong>Forgot / Reset password (/reset-password)</strong><ul>
+      <li>Time-limited, single-use links (guide Step 8).</li>
+    </ul></figcaption>
+  </figure>
+
+</div>
+
+<h2 class="group">2. Buyer dashboard (after login)</h2>
+<p class="group-sub">Sections: Overview, My requests, My orders, Messages, Saved products, Profile. Bottom tab bar on phones.</p>
+
+<div class="gallery">
+
+  <!-- BUYER OVERVIEW -->
+  <figure class="shot">
+    <div class="phone"><div class="screen">
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang">EN | RW</span><span class="btn-login">Aline ●</span></div>
+      <div class="pg-title">Muraho, Aline 👋</div>
+      <div class="stats">
+        <div class="stat"><div class="v">2</div><div class="l">My requests</div></div>
+        <div class="stat"><div class="v">1</div><div class="l">My orders</div></div>
+        <div class="stat"><div class="v">3</div><div class="l">Unread messages</div></div>
+      </div>
+      <div class="section-h">Recent activity</div>
+      <div class="lrow"><div class="avatar sq">📦</div><div class="grow"><b>Beans · Huye</b><div class="meta">Your offer 850 RWF/kg was countered: 880 RWF/kg</div></div><span class="pill pending">Pending</span></div>
+      <div class="lrow"><div class="avatar sq">💬</div><div class="grow"><b>Umutara Cooperative</b><div class="meta">“Yes, we can do 400 for 500 kg…”</div></div><span class="notecount">3</span></div>
+      <div class="tabs">
+        <div class="tab active"><span class="ic"></span>Overview</div>
+        <div class="tab"><span class="ic"></span>Requests</div>
+        <div class="tab"><span class="ic"></span>Orders</div>
+        <div class="tab"><span class="ic"></span>Messages</div>
+        <div class="tab"><span class="ic"></span>Profile</div>
+      </div>
+    </div></div>
+    <figcaption><strong>Buyer — Overview</strong><ul>
+      <li>Stats link into each section. Notification bell lives in the appbar (in-app + email in v1).</li>
+    </ul></figcaption>
+  </figure>
+
+  <!-- BUYER REQUESTS -->
+  <figure class="shot">
+    <div class="phone"><div class="screen">
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="btn-login">Aline ●</span></div>
+      <div class="pg-title">My requests</div>
+      <div class="lrow">
+        <div class="avatar sq">🫘</div>
+        <div class="grow"><b>Beans · Huye</b><div class="meta">300 kg · offer 850 RWF/kg</div>
+          <div class="meta">Farmer countered: <b>880 RWF/kg</b></div></div>
+        <span class="pill pending">Negotiating</span>
+      </div>
+      <div class="btn-row" style="margin:8px 12px">
+        <span class="btn small sec">Accept 880</span><span class="btn small sec">Counter</span><span class="btn small danger">Cancel</span>
+      </div>
+      <div class="lrow">
+        <div class="avatar sq">🥔</div>
+        <div class="grow"><b>Irish potato · Musanze</b><div class="meta">500 kg · offer 380 RWF/kg</div></div>
+        <span class="pill bad">Rejected</span>
+      </div>
+      <div class="lrow">
+        <div class="avatar sq">🌽</div>
+        <div class="grow"><b>Maize · Nyagatare</b><div class="meta">1,000 kg · offer 500 RWF/kg</div></div>
+        <span class="pill pending">Pending</span>
+      </div>
+      <div class="tabs">
+        <div class="tab"><span class="ic"></span>Overview</div>
+        <div class="tab active"><span class="ic"></span>Requests</div>
+        <div class="tab"><span class="ic"></span>Orders</div>
+        <div class="tab"><span class="ic"></span>Messages</div>
+        <div class="tab"><span class="ic"></span>Profile</div>
+      </div>
+    </div></div>
+    <figcaption><strong>Buyer — My requests</strong><ul>
+      <li>Status as word + color (Pending amber, Negotiating gray, Rejected red).</li>
+      <li>Accepting a farmer's counter creates an order (Step 10).</li>
+      <li>One active request per buyer per product (rules doc §7).</li>
+    </ul></figcaption>
+  </figure>
+
+  <!-- BUYER ORDERS -->
+  <figure class="shot">
+    <div class="phone"><div class="screen">
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="btn-login">Aline ●</span></div>
+      <div class="pg-title">My orders</div>
+      <div class="lrow">
+        <div class="avatar sq">🥔</div>
+        <div class="grow"><b>#1024 · Irish potato</b><div class="meta">500 kg · 390 RWF/kg · Musanze</div>
+          <div class="timeline" style="padding:4px 0 0">
+            <div class="t">Confirmed by both sides — 10 Nov, 09:12</div>
+            <div class="t amber">Waiting for farmer to mark ready</div>
+          </div></div>
+        <span class="pill ok">Confirmed</span>
+      </div>
+      <div class="note-box">SARURA does not handle payment or delivery. Agree on cash or mobile money with the farmer. <b>Report a problem</b></div>
+      <div class="lrow">
+        <div class="avatar sq">🫘</div>
+        <div class="grow"><b>#1019 · Beans</b><div class="meta">300 kg · 880 RWF/kg · Huye</div></div>
+        <span class="pill ok">Completed</span>
+      </div>
+      <div class="lrow">
+        <div class="avatar sq">🌽</div>
+        <div class="grow"><b>#1011 · Maize</b><div class="meta">Cancelled by farmer — “sold out”</div></div>
+        <span class="pill bad">Cancelled</span>
+      </div>
+      <div class="tabs">
+        <div class="tab"><span class="ic"></span>Overview</div><div class="tab"><span class="ic"></span>Requests</div>
+        <div class="tab active"><span class="ic"></span>Orders</div><div class="tab"><span class="ic"></span>Messages</div>
+        <div class="tab"><span class="ic"></span>Profile</div>
+      </div>
+    </div></div>
+    <figcaption><strong>Buyer — My orders</strong><ul>
+      <li>Statuses: pending, negotiating, confirmed, completed, cancelled (guide section 8).</li>
+      <li>Every status change is shown with who and when (history table).</li>
+      <li>Order page states SARURA does not check payment/delivery + dispute button.</li>
+    </ul></figcaption>
+  </figure>
+
+  <!-- MESSAGES LIST -->
+  <figure class="shot">
+    <div class="phone"><div class="screen">
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="btn-login">Aline ●</span></div>
+      <div class="pg-title">Messages</div>
+      <div class="lrow">
+        <div class="avatar">UM</div>
+        <div class="grow"><b>Umutara Cooperative</b><div class="meta">Irish potato · “Yes, 400 for 500 kg works…”</div></div>
+        <div><span class="notecount">3</span><div class="meta">09:41</div></div>
+      </div>
+      <div class="lrow">
+        <div class="avatar">JB</div>
+        <div class="grow"><b>Jean-Bosco H.</b><div class="meta">Beans · “I will check the stock tomorrow”</div></div>
+        <div><div class="meta">Yesterday</div></div>
+      </div>
+      <div class="lrow">
+        <div class="avatar">MK</div>
+        <div class="grow"><b>Mukamana K.</b><div class="meta">Maize · “Thank you, deal done.”</div></div>
+        <div><div class="meta">2 Nov</div></div>
+      </div>
+      <div class="note-box">Conversations with no activity for 12 months are removed automatically.</div>
+      <div class="tabs">
+        <div class="tab"><span class="ic"></span>Overview</div><div class="tab"><span class="ic"></span>Requests</div>
+        <div class="tab"><span class="ic"></span>Orders</div><div class="tab active"><span class="ic"></span>Messages</div>
+        <div class="tab"><span class="ic"></span>Profile</div>
+      </div>
+    </div></div>
+    <figcaption><strong>Buyer/Farmer — Messages (list)</strong><ul>
+      <li>One conversation per buyer + farmer + product; shows product context.</li>
+      <li>Unread counters (guide section 8). Same list component for both dashboards.</li>
+    </ul></figcaption>
+  </figure>
+
+  <!-- CHAT SCREEN -->
+  <figure class="shot">
+    <div class="phone"><div class="screen">
+      <div class="appbar">
+        <span class="navlink">←</span>
+        <div class="avatar" style="width:26px;height:26px">UM</div>
+        <div class="grow"><b style="font-size:11px">Umutara Cooperative</b><div class="meta">Irish potato · 400 RWF/kg</div></div>
+        <span class="lang">⋮</span>
+      </div>
+      <div class="small-actions" style="padding:6px 12px 2px;gap:14px"><span>Report</span><span>Block</span></div>
+      <div style="margin-top:8px">
+        <div class="bubble them">Muraho! Do you still have Irish potatoes?</div>
+        <div class="bubble me">Yes, 2,000 kg in Musanze. 400 RWF/kg.</div>
+        <div class="bubble them">I need 500 kg. Can you do 390?</div>
+        <div class="bubble me">Okay, 390 for 500 kg works.</div>
+      </div>
+      <div class="chat-input" style="margin-top:auto">
+        <div class="input">Write a message…</div>
+        <div class="send">➤</div>
+      </div>
+    </div></div>
+    <figcaption><strong>Chat screen (conversation)</strong><ul>
+      <li>Plain text only — never HTML. Stored server-side, read only by the two participants.</li>
+      <li>Report + Block in every conversation. Polling in v1, WebSockets later.</li>
+      <li>Older messages load in pages.</li>
+    </ul></figcaption>
+  </figure>
+
+  <!-- SAVED PRODUCTS -->
+  <figure class="shot">
+    <div class="phone"><div class="screen">
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="btn-login">Aline ●</span></div>
+      <div class="pg-title">Saved products</div>
+      <div class="card"><div class="body">
+        <div class="row"><span class="crop">Beans</span><span class="price">900 RWF/kg</span></div>
+        <div class="row"><span class="meta">500 kg · Huye</span></div>
+      </div></div>
+      <div class="btn ter" style="min-height:36px">Remove from saved</div>
+      <div class="card"><div class="body">
+        <div class="row"><span class="crop">Avocado</span><span class="price">700 RWF/kg</span></div>
+        <div class="row"><span class="meta">800 kg · Rubavu</span></div>
+      </div></div>
+      <div class="btn ter" style="min-height:36px">Remove from saved</div>
+      <div class="tabs">
+        <div class="tab"><span class="ic"></span>Overview</div><div class="tab"><span class="ic"></span>Requests</div>
+        <div class="tab"><span class="ic"></span>Orders</div><div class="tab"><span class="ic"></span>Messages</div>
+        <div class="tab active"><span class="ic"></span>Profile</div>
+      </div>
+    </div></div>
+    <figcaption><strong>Buyer — Saved products</strong><ul>
+      <li>Unique buyer+product pair in the database (guide section 7).</li>
+    </ul></figcaption>
+  </figure>
+
+  <!-- BUYER PROFILE -->
+  <figure class="shot">
+    <div class="phone"><div class="screen">
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="btn-login">Aline ●</span></div>
+      <div class="pg-title">Profile</div>
+      <div class="field"><label>Full name</label><div class="input">Aline Uwase</div></div>
+      <div class="field"><label>Email</label><div class="input">aline@example.rw</div></div>
+      <div class="field"><label>Phone <span class="hint">(private)</span></label><div class="input">+250 788 111 222</div></div>
+      <div class="field"><label>District</label><div class="input">Kicukiro ▾</div></div>
+      <div class="field"><label>Buyer type</label><div class="input">Restaurant ▾</div></div>
+      <div class="field"><label>Language</label><div class="input">Kinyarwanda ▾</div></div>
+      <div class="btn">Save changes</div>
+      <div class="btn ter" style="min-height:36px">Change password</div>
+      <div class="btn danger" style="min-height:36px">Delete my account</div>
+      <div class="wf-footer"><div class="links"><span>About</span><span>Contact</span><span>Privacy Policy</span><span>Platform Policies</span></div>SARURA</div>
+    </div></div>
+    <figcaption><strong>Buyer — Profile</strong><ul>
+      <li>Phone/email labeled private. Delete-account flow also in Privacy Policy.</li>
+    </ul></figcaption>
+  </figure>
+
+</div>
+
+<h2 class="group">3. Farmer dashboard (after login)</h2>
+<p class="group-sub">Sections: Overview, My products, Add product, Requests received, Orders, Messages, Profile.</p>
+
+<div class="gallery">
+
+  <!-- FARMER OVERVIEW -->
+  <figure class="shot">
+    <div class="phone"><div class="screen">
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang">EN | RW</span><span class="btn-login">Umutara ●</span></div>
+      <div class="pg-title">Muraho, Umutara Cooperative</div>
+      <div class="stats">
+        <div class="stat"><div class="v">6</div><div class="l">Active listings</div></div>
+        <div class="stat"><div class="v">2</div><div class="l">Requests received</div></div>
+        <div class="stat"><div class="v">1</div><div class="l">Unread messages</div></div>
+      </div>
+      <div class="btn">+ Add product</div>
+      <div class="section-h">New requests</div>
+      <div class="lrow"><div class="avatar sq">🫘</div><div class="grow"><b>Aline U. — Beans</b><div class="meta">300 kg · offers 850 RWF/kg</div></div><span class="pill pending">Pending</span></div>
+      <div class="tabs">
+        <div class="tab active"><span class="ic"></span>Overview</div><div class="tab"><span class="ic"></span>Products</div>
+        <div class="tab"><span class="ic"></span>Requests</div><div class="tab"><span class="ic"></span>Orders</div>
+        <div class="tab"><span class="ic"></span>Profile</div>
+      </div>
+    </div></div>
+    <figcaption><strong>Farmer — Overview</strong><ul>
+      <li>Add product is the primary action. Verification status shown in profile.</li>
+    </ul></figcaption>
+  </figure>
+
+  <!-- MY PRODUCTS -->
+  <figure class="shot">
+    <div class="phone"><div class="screen">
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="btn-login">Umutara ●</span></div>
+      <div class="pg-title">My products <span class="pill ok">6 active</span></div>
+      <div class="lrow">
+        <div class="avatar sq">🥔</div>
+        <div class="grow"><b>Irish potato</b><div class="meta">2,000 kg · 400 RWF/kg · Musanze</div></div>
+        <span class="pill ok">Active</span>
+      </div>
+      <div class="btn-row" style="margin:6px 12px">
+        <span class="btn small sec">Edit</span><span class="btn small sec">Mark as sold</span><span class="btn small danger">Hide</span>
+      </div>
+      <div class="lrow">
+        <div class="avatar sq">🌽</div>
+        <div class="grow"><b>Maize</b><div class="meta">3,500 kg · 550 RWF/kg · Musanze</div></div>
+        <span class="pill ok">Active</span>
+      </div>
+      <div class="lrow">
+        <div class="avatar sq">🫘</div>
+        <div class="grow"><b>Beans (lot 2)</b><div class="meta">0 kg · sold</div></div>
+        <span class="pill">Sold</span>
+      </div>
+      <div class="lrow">
+        <div class="avatar sq">🥬</div>
+        <div class="grow"><b>Cabbage</b><div class="meta">hidden for season break</div></div>
+        <span class="pill">Hidden</span>
+      </div>
+      <div class="tabs">
+        <div class="tab"><span class="ic"></span>Overview</div><div class="tab active"><span class="ic"></span>Products</div>
+        <div class="tab"><span class="ic"></span>Requests</div><div class="tab"><span class="ic"></span>Orders</div>
+        <div class="tab"><span class="ic"></span>Profile</div>
+      </div>
+    </div></div>
+    <figcaption><strong>Farmer — My products</strong><ul>
+      <li>Farmer can edit/hide/sell only their own listings (server-checked).</li>
+      <li>Deleted listings are archived, not removed (guide section 7).</li>
+    </ul></figcaption>
+  </figure>
+
+  <!-- ADD PRODUCT -->
+  <figure class="shot">
+    <div class="phone"><div class="screen">
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="btn-login">Umutara ●</span></div>
+      <div class="pg-title">Add product</div>
+      <div class="field"><label>Category <span class="req">*</span></label><div class="input">Tubers ▾</div></div>
+      <div class="field"><label>Crop name <span class="req">*</span></label><div class="input">Irish potato ⌕</div><span class="hint">Suggestions appear as you type.</span></div>
+      <div class="field"><label>Description</label><div class="input" style="min-height:60px;align-items:flex-start;padding-top:8px">Fresh Irish potatoes…</div></div>
+      <div class="field"><label>Quantity (kg) <span class="req">*</span></label><div class="input">2,000</div></div>
+      <div class="field"><label>Price (RWF/kg) <span class="req">*</span></label><div class="input">400</div></div>
+      <div class="field" style="margin-bottom:4px"><label>Price basis</label></div>
+      <div class="radio"><span class="r">Fixed</span><span class="r">Negotiable</span></div>
+      <div class="field"><label>District <span class="req">*</span></label><div class="input">Musanze ▾</div></div>
+      <div class="field"><label>Sector <span class="req">*</span></label><div class="input">Kinigi</div></div>
+      <div class="field"><label>Available from</label><div class="input">15 Nov 2026</div></div>
+      <div class="field" style="margin-bottom:4px"><label>Photos (max 5)</label></div>
+      <div class="photo-add"><span class="p first">photo 1</span><span class="p">+ add</span></div>
+      <div class="btn">Save product</div>
+      <div class="tabs">
+        <div class="tab"><span class="ic"></span>Overview</div><div class="tab active"><span class="ic"></span>Products</div>
+        <div class="tab"><span class="ic"></span>Requests</div><div class="tab"><span class="ic"></span>Orders</div>
+        <div class="tab"><span class="ic"></span>Profile</div>
+      </div>
+    </div></div>
+    <figcaption><strong>Farmer — Add product</strong><ul>
+      <li>Same form used for editing. Validation happens again on the server.</li>
+      <li>Photos: JPG/PNG/WebP, ≤1MB each after compression, alt text auto-filled with crop name.</li>
+    </ul></figcaption>
+  </figure>
+
+  <!-- REQUESTS RECEIVED -->
+  <figure class="shot">
+    <div class="phone"><div class="screen">
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="btn-login">Umutara ●</span></div>
+      <div class="pg-title">Requests received</div>
+      <div class="lrow">
+        <div class="avatar">AL</div>
+        <div class="grow"><b>Aline U. — Irish potato</b>
+          <div class="meta">Wants 500 kg · offers 380 RWF/kg</div>
+          <div class="meta">“I can pick up on Friday.”</div></div>
+        <span class="pill pending">Pending</span>
+      </div>
+      <div class="btn-row" style="margin:8px 12px">
+        <span class="btn small" style="background:#247A45;color:#fff">Accept</span>
+        <span class="btn small sec">Counter</span>
+        <span class="btn small danger">Reject</span>
+      </div>
+      <div class="lrow">
+        <div class="avatar">JB</div>
+        <div class="grow"><b>Jean-Bosco H. — Beans</b><div class="meta">Counter sent: 880 RWF/kg · 300 kg</div></div>
+        <span class="pill pending">Negotiating</span>
+      </div>
+      <div class="lrow">
+        <div class="avatar">MK</div>
+        <div class="grow"><b>Mukamana K. — Maize</b><div class="meta">1,000 kg · 500 RWF/kg · accepted</div></div>
+        <span class="pill ok">Confirmed</span>
+      </div>
+      <div class="tabs">
+        <div class="tab"><span class="ic"></span>Overview</div><div class="tab"><span class="ic"></span>Products</div>
+        <div class="tab active"><span class="ic"></span>Requests</div><div class="tab"><span class="ic"></span>Orders</div>
+        <div class="tab"><span class="ic"></span>Profile</div>
+      </div>
+    </div></div>
+    <figcaption><strong>Farmer — Requests received</strong><ul>
+      <li>Accept / Reject / Counter; each counter is a new row in offers (history).</li>
+      <li>Accepting (or buyer accepting a counter) creates the order.</li>
+    </ul></figcaption>
+  </figure>
+
+  <!-- FARMER ORDERS -->
+  <figure class="shot">
+    <div class="phone"><div class="screen">
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="btn-login">Umutara ●</span></div>
+      <div class="pg-title">Orders</div>
+      <div class="lrow">
+        <div class="avatar">AL</div>
+        <div class="grow"><b>#1024 · Aline U.</b><div class="meta">500 kg Irish potato · 390 RWF/kg</div>
+          <div class="meta">Pickup at farm · buyer arranges transport</div></div>
+        <span class="pill ok">Confirmed</span>
+      </div>
+      <div class="btn-row" style="margin:8px 12px">
+        <span class="btn small sec">Mark completed</span><span class="btn small danger">Cancel order</span>
+      </div>
+      <div class="note-box">Cancel asks <b>who cancelled and why</b>; every change is stored with who and when.</div>
+      <div class="lrow">
+        <div class="avatar">MK</div>
+        <div class="grow"><b>#1010 · Mukamana K.</b><div class="meta">1,000 kg maize · 500 RWF/kg</div></div>
+        <span class="pill ok">Completed</span>
+      </div>
+      <div class="tabs">
+        <div class="tab"><span class="ic"></span>Overview</div><div class="tab"><span class="ic"></span>Products</div>
+        <div class="tab"><span class="ic"></span>Requests</div><div class="tab active"><span class="ic"></span>Orders</div>
+        <div class="tab"><span class="ic"></span>Profile</div>
+      </div>
+    </div></div>
+    <figcaption><strong>Farmer — Orders</strong><ul>
+      <li>Completed needs both sides to mark done; cancelled records who and why.</li>
+      <li>Preparing / Ready / In-transit statuses are a later addition (guide section 8).</li>
+    </ul></figcaption>
+  </figure>
+
+  <!-- FARMER PROFILE -->
+  <figure class="shot">
+    <div class="phone"><div class="screen">
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="btn-login">Umutara ●</span></div>
+      <div class="pg-title">Profile</div>
+      <div class="field"><label>Farm / cooperative name</label><div class="input">Umutara Cooperative</div></div>
+      <div class="field"><label>Email</label><div class="input">umutara@example.rw</div></div>
+      <div class="field"><label>Phone <span class="hint">(private)</span></label><div class="input">+250 788 333 444</div></div>
+      <div class="field"><label>District</label><div class="input">Musanze ▾</div></div>
+      <div class="field"><label>Bio</label><div class="input" style="min-height:60px;align-items:flex-start;padding-top:8px">24 farmers in Kinigi…</div></div>
+      <div class="note-box">Verification: <b>Account verified ✓</b> (email confirmed). Identity review by admins comes later — you will be contacted.</div>
+      <div class="btn">Save changes</div>
+      <div class="btn ter" style="min-height:36px">Change password</div>
+      <div class="wf-footer"><div class="links"><span>About</span><span>Contact</span><span>Privacy Policy</span><span>Platform Policies</span></div>SARURA</div>
+    </div></div>
+    <figcaption><strong>Farmer — Profile</strong><ul>
+      <li>Shows current verification level and what comes next (guide section 9).</li>
+    </ul></figcaption>
+  </figure>
+
+</div>
+
+<h2 class="group">4. Admin</h2>
+<p class="group-sub">Django's built-in admin, customized, on a non-obvious URL (guide section 4).
+Not wireframed as React pages. Screens: farmer verification queue, listings (hide/restore),
+users (ban), reports, contact messages, categories, statistics. All admin actions write to
+audit_logs; admins read a conversation only for a report or security issue, and each access
+is logged.</p>
+
+<p class="sub" style="margin-top:40px">Desktop and tablet layouts expand these same components
+(product grid 2–4 columns, dashboard tabs become a sidebar). All wireframes respect: one primary
+button per screen, units next to every number, statuses as words, 44px tap targets, and the
+green/white/gray palette with amber = pending and red = errors only.</p>
+
+</body>
+</html>
