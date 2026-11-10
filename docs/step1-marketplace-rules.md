@@ -172,6 +172,13 @@ still need a human decision before implementation.
     holds Messages (unread badge — also linked from Home's unread stat),
     Add product, Saved products, Profile, Language, Log out.
 - Public pages use a hamburger menu on phones.
+- **Icon policy (founder review): text-first design.** No decorative emojis or
+  icon illustrations anywhere in the UI. Navigation and actions are text labels
+  (Home, Requests, Orders, Messages, More, Save product, Send). The only marks
+  allowed are ones that genuinely aid usability and are always paired with text:
+  the ✓ inside a verification badge (next to the level name) and the ☰ mobile
+  menu button. Statuses are words, never icon-only. SARURA should look like a
+  serious agricultural technology platform.
 
 ## 10. Trust and safety
 
