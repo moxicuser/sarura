@@ -35,7 +35,7 @@ Default language: **Kinyarwanda (rw)**. English toggle in the header.
 |---|---|---|
 | Login title | Log in | Kwinjira ✅ |
 | Register title | Create your account | Kora konti yawe ⚠ |
-| Role choice | I am a buyer / I am a farmer | Ndi umuguzi / Ndi umuhinzi ✅ |
+| Role choice | I am a buyer / I am a farmer / I am both | Ndi umuguzi / Ndi umuhinzi / Ndi umuhinzi n'umuguzi ⚠ |
 | Full name | Full name | Amazina yombi ✅ |
 | Email | Email | Imeri ✅ |
 | Phone | Phone number | Numero ya telefoni ✅ |
@@ -178,9 +178,40 @@ Default language: **Kinyarwanda (rw)**. English toggle in the header.
 | Eggs | Amagi |
 | Milk | Amata |
 
+## J. Terms added after the founder review (all ⚠ pending native review)
+
+| Element | English | Kinyarwanda |
+|---|---|---|
+| Province | Province | Intara ✅ |
+| Cell | Cell (optional location detail) | Akagali ✅ |
+| Nav: More | More | Ibindi ⚠ |
+| Role switcher (dual account) | Selling view / Buying view | Ibonere ryo kucuruza / Ibonere ryo kugura ⚠ |
+| Verification: level 0 | Unverified | Ntaguhamwe ⚠ (nti yemejwe ⚠) |
+| Verification: level 1 | Account verified | Konti yemejwe (imeri) ⚠ |
+| Verification: level 2 | Identity reviewed | Umwirondoro wasuzumwe ⚠ |
+| Verification: level 3 | Cooperative verified | Yemewe n'ikoperative ⚠ |
+| Verification legend | Verification levels | Inzego y'ukwemeza ⚠ |
+| Admin: Overview | Platform overview | Igaragaza rya porogaramu ⚠ |
+| Admin: Verification queue | Farmer verification | Kwemeza abahinzi ⚠ |
+| Admin: Reports | Reports | Raporo ⚠ (ibyatangajwe ⚠) |
+| Admin: Listings | Listings moderation | Kwita ku bicuruzwa ⚠ |
+| Admin: Users | Users | Abakoresha ⚠ |
+| Admin: Contact messages | Contact messages | Ubutumwa bwa contact ⚠ |
+| Admin: Audit log | Audit log | Amateka y'ibikorwa ⚠ |
+| Admin: statistics | Statistics | Imibare ⚠ |
+| Admin: hide listing | Hide listing | Hisha igicuruzwa ⚠ |
+| Admin: ban user | Suspend user | Funga konti ⚠ |
+| Admin: verify identity | Mark identity reviewed | Andika ko umwirondoro wasuzumwe ⚠ |
+
 ## Conventions
 
 - Kinyarwanda file (`rw.json`) is written first; English (`en.json`) mirrors its keys.
+- **Kinyarwanda is the default** for all public pages and dashboards; English via
+  the header toggle. The admin dashboard (staff-only) is English-first — staff
+  tools are not farmer-facing — but keeps the i18n structure so Kinyarwanda can
+  be added for district agents later.
+- Location words follow Rwanda's structure: intara (province), akarere
+  (district), umurenge (sector), akagali (cell).
 - Every price string includes `RWF`, every quantity includes `kg`.
 - Buttons are short (1–3 words); sentences are kept simple for low-literacy users.
 - Interpolated values use i18next placeholders, e.g. `"500 kg ziriho": "{{qty}} kg ziriho"`.

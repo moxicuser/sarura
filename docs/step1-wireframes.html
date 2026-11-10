@@ -179,14 +179,56 @@
   .timeline .t::before { content: "●"; color: var(--green); font-size: 8px; margin-top: 2px; }
   .timeline .t.amber::before { color: var(--amber); }
   .timeline .t.bad::before { color: var(--red); }
+
+  /* admin dashboard (desktop wireframes, section 4) */
+  .gallery.admin { grid-template-columns: repeat(auto-fill, minmax(560px, 1fr)); }
+  .browser {
+    width: 100%; max-width: 700px; align-self: center;
+    border: 10px solid var(--text); border-radius: 14px; background: #fff;
+    overflow: hidden; box-shadow: 0 8px 18px rgba(0,0,0,.10);
+  }
+  .browser .omni {
+    display: flex; align-items: center; gap: 8px; background: var(--page);
+    border-bottom: 1px solid var(--border); padding: 7px 10px; font-size: 10px; color: var(--gray);
+  }
+  .browser .omni .dot { width: 9px; height: 9px; border-radius: 99px; background: var(--border); }
+  .browser .omni .url { background: #fff; border: 1px solid var(--border); border-radius: 99px; padding: 2px 10px; flex: 1; }
+  .admin-body { display: flex; align-items: stretch; min-height: 430px; }
+  .admin-side { width: 148px; flex: none; border-right: 1px solid var(--border); background: var(--page); padding: 8px 0; }
+  .admin-side .brand { font-weight: 800; color: var(--green); font-size: 11px; padding: 4px 12px 10px; }
+  .admin-side .a { font-size: 10px; padding: 6px 12px; color: var(--gray); display: block; }
+  .admin-side .a.active { background: #fff; color: var(--green); font-weight: 700; border-left: 3px solid var(--green); }
+  .admin-side .a .cnt { float: right; background: var(--amber); color: #fff; border-radius: 99px; padding: 0 5px; font-size: 9px; font-weight: 700; }
+  .admin-main { flex: 1; min-width: 0; padding: 12px 14px; }
+  .admin-h { font-size: 14px; font-weight: 800; }
+  .admin-sub { font-size: 10px; color: var(--gray); margin: 1px 0 10px; }
+  .kpis { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .kpi { flex: 1; min-width: 96px; border: 1px solid var(--border); border-radius: 10px; padding: 8px 9px; }
+  .kpi .v { font-size: 15px; font-weight: 800; color: var(--green-dark); }
+  .kpi .l { font-size: 9px; color: var(--gray); line-height: 1.3; }
+  .kpi.warn .v { color: var(--amber); }
+  .kpi.bad .v { color: var(--red); }
+  table.tbl { width: 100%; border-collapse: collapse; font-size: 10px; }
+  .tbl th { text-align: left; font-size: 9px; color: var(--gray); border-bottom: 2px solid var(--border); padding: 5px 6px; }
+  .tbl td { border-bottom: 1px solid var(--border); padding: 6px; vertical-align: top; }
+  .tbl .act { font-size: 9px; white-space: nowrap; }
+  .tbl .act .btn.small { margin-right: 4px; }
+  .bar-chart { display: flex; align-items: flex-end; gap: 5px; height: 64px; margin: 4px 0 2px; }
+  .bar-chart .b { flex: 1; background: var(--green); border-radius: 3px 3px 0 0; opacity: .8; }
+  .bar-chart .b.hi { background: var(--green-dark); }
+  .admin-note { background: var(--page); border: 1px solid var(--border); border-radius: 8px; padding: 6px 9px; font-size: 9.5px; color: var(--gray); margin-bottom: 8px; }
 </style>
 </head>
 <body>
 
 <h1>SARURA — Step 1 Wireframes</h1>
 <p class="sub">Mobile-first sketches for every page in Development Guide section 4.
-Built with the exact section-5 palette. Labels are in English here; the real site is
-Kinyarwanda-first with an EN/RW toggle (see <code>docs/step1-translations.md</code>).</p>
+Built with the exact section-5 palette. Rev. 2 (founder review): Kinyarwanda is the
+default language (RW active in the toggle), dashboards use 5 bottom tabs + a More
+sheet, locations follow Rwanda's province → district → sector structure, farmer
+verification uses named levels, admin has its own dashboard UI, and accounts can be
+farmer + buyer at once. English labels shown here; the real site is
+Kinyarwanda-first (see <code>docs/step1-translations.md</code>).</p>
 
 <div class="swatches">
   <div class="sw"><div class="c" style="background:#247A45"></div><div class="t"><b>Primary green</b>#247A45 — buttons, links, brand</div></div>
@@ -218,8 +260,8 @@ Kinyarwanda-first with an EN/RW toggle (see <code>docs/step1-translations.md</co
     <div class="phone"><div class="screen">
       <div class="appbar">
         <div class="logo"><span class="mark"></span>SARURA</div>
-        <span class="navlink">Marketplace</span>
-        <span class="lang">EN | RW</span>
+        <span class="navlink" style="font-size:14px">☰</span>
+        <span class="lang"><b style="color:#247A45">RW</b> | EN</span>
         <span class="btn-login">Log in</span>
       </div>
       <div class="hero">
@@ -237,7 +279,7 @@ Kinyarwanda-first with an EN/RW toggle (see <code>docs/step1-translations.md</co
         <div class="thumb">photo</div>
         <div class="body">
           <div class="row"><span class="crop">Irish potato</span><span class="price">400 RWF/kg</span></div>
-          <div class="row"><span class="meta">2,000 kg · Musanze</span><span class="badge">Verified</span></div>
+          <div class="row"><span class="meta">2,000 kg · Musanze</span><span class="badge">Account verified</span></div>
         </div>
       </div>
       <div class="card">
@@ -260,8 +302,8 @@ Kinyarwanda-first with an EN/RW toggle (see <code>docs/step1-translations.md</co
     </div></div>
     <figcaption><strong>Home</strong><ul>
       <li>Hero + search bar; searching from here goes to /marketplace with the query.</li>
+      <li>Header on phones = logo + ☰ menu + language toggle + Log in. The ☰ opens a drawer: Marketplace, How It Works, Sell on SARURA, About, Contact, Privacy Policy, Platform Policies.</li>
       <li>Popular categories as chips; latest listings (2 shown here, 12–24 per page real).</li>
-      <li>Two CTAs: search (buyer) and “Sell on SARURA” (farmer, in header).</li>
       <li>Footer: dark green, white links.</li>
     </ul></figcaption>
   </figure>
@@ -271,8 +313,8 @@ Kinyarwanda-first with an EN/RW toggle (see <code>docs/step1-translations.md</co
     <div class="phone"><div class="screen">
       <div class="appbar">
         <div class="logo"><span class="mark"></span>SARURA</div>
-        <span class="navlink">How It Works</span>
-        <span class="lang">EN | RW</span>
+        <span class="navlink" style="font-size:14px">☰</span>
+        <span class="lang"><b style="color:#247A45">RW</b> | EN</span>
         <span class="btn-login">Log in</span>
       </div>
       <div style="padding:10px 12px 0">
@@ -280,14 +322,14 @@ Kinyarwanda-first with an EN/RW toggle (see <code>docs/step1-translations.md</co
       </div>
       <div class="chips" style="padding-top:6px">
         <span class="chip active">Filters ▾</span><span class="chip">Category: All ▾</span>
-        <span class="chip">District ▾</span><span class="chip">Sort: Newest ▾</span>
+        <span class="chip">Province ▾</span><span class="chip">District ▾</span><span class="chip">Sort: Newest ▾</span>
       </div>
       <div class="meta" style="padding:0 12px 4px">14 results</div>
       <div class="card">
         <div class="thumb">photo</div>
         <div class="body">
           <div class="row"><span class="crop">Beans</span><span class="price">900 RWF/kg</span></div>
-          <div class="row"><span class="meta">500 kg · Huye</span><span class="badge">Verified</span></div>
+          <div class="row"><span class="meta">500 kg · Huye</span><span class="badge">Account verified</span></div>
         </div>
       </div>
       <div class="card">
@@ -302,7 +344,7 @@ Kinyarwanda-first with an EN/RW toggle (see <code>docs/step1-translations.md</co
       <div class="wf-footer"><div class="links"><span>About</span><span>Contact</span><span>Privacy Policy</span><span>Platform Policies</span></div>SARURA</div>
     </div></div>
     <figcaption><strong>Marketplace (/marketplace)</strong><ul>
-      <li>Search by crop name; filters: category, district, price range, min quantity, verified only.</li>
+      <li>Search by crop name; filters: category, province, district (district list follows province), price range, min quantity, verified only.</li>
       <li>Sort: newest, lowest price, nearest district. Paginated (24 per page).</li>
       <li>Each card links to /products/:id. Cards show photo, crop, bold price, quantity, district, badge.</li>
       <li>Thumbnails are small (low-data); result count always visible.</li>
@@ -314,20 +356,20 @@ Kinyarwanda-first with an EN/RW toggle (see <code>docs/step1-translations.md</co
     <div class="phone"><div class="screen">
       <div class="appbar">
         <div class="logo"><span class="mark"></span>SARURA</div>
-        <span class="lang">EN | RW</span>
+        <span class="lang"><b style="color:#247A45">RW</b> | EN</span>
         <span class="btn-login">Log in</span>
       </div>
       <div class="card" style="margin-top:10px">
         <div class="thumb" style="height:120px">photo · photo · photo</div>
       </div>
-      <div class="pg-title">Irish potato <span class="badge">Verified</span></div>
+      <div class="pg-title">Irish potato <span class="badge">Account verified</span></div>
       <div style="padding:0 12px">
         <div class="price" style="font-size:16px">400 RWF/kg</div>
-        <div class="meta">2,000 kg available · Musanze, Kinigi sector · price basis: <b>negotiable</b></div>
+        <div class="meta">2,000 kg available · Northern Province · Musanze district, Kinigi sector · price basis: <b>negotiable</b></div>
       </div>
       <div class="lrow">
         <div class="avatar">UM</div>
-        <div class="grow"><b>Umutara Cooperative</b><div class="meta">Farmer · Musanze · 6 active listings</div></div>
+        <div class="grow"><b>Umutara Cooperative</b><div class="meta">Farmer · Musanze · 6 active listings · verification: Account verified</div></div>
         <span class="navlink">Profile →</span>
       </div>
       <div class="prose"><p>Fresh Irish potatoes from the volcanic soils of Musanze. Available from 15 Nov. Buyer arranges transport or pickup at the farm.</p></div>
@@ -370,10 +412,10 @@ Kinyarwanda-first with an EN/RW toggle (see <code>docs/step1-translations.md</co
   <!-- FARMER PROFILE -->
   <figure class="shot">
     <div class="phone"><div class="screen">
-      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang">EN | RW</span></div>
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang"><b style="color:#247A45">RW</b> | EN</span></div>
       <div style="display:flex;gap:10px;padding:14px 12px 6px;align-items:center">
         <div class="avatar" style="width:52px;height:52px;font-size:14px">UM</div>
-        <div><b style="font-size:14px">Umutara Cooperative</b> <span class="badge">Verified</span>
+        <div><b style="font-size:14px">Umutara Cooperative</b> <span class="badge">Account verified</span>
         <div class="meta">Musanze district · farmer since 2026</div></div>
       </div>
       <div class="prose"><p>We are 24 farmers growing Irish potato, beans and maize in Kinigi. We sell in lots from 100 kg.</p></div>
@@ -397,7 +439,7 @@ Kinyarwanda-first with an EN/RW toggle (see <code>docs/step1-translations.md</co
   <!-- HOW IT WORKS -->
   <figure class="shot">
     <div class="phone"><div class="screen">
-      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang">EN | RW</span></div>
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang"><b style="color:#247A45">RW</b> | EN</span></div>
       <div class="pg-title">How It Works</div>
       <div class="section-h">For farmers</div>
       <div class="steps">
@@ -423,7 +465,7 @@ Kinyarwanda-first with an EN/RW toggle (see <code>docs/step1-translations.md</co
   <!-- ABOUT -->
   <figure class="shot">
     <div class="phone"><div class="screen">
-      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang">EN | RW</span></div>
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang"><b style="color:#247A45">RW</b> | EN</span></div>
       <div class="pg-title">About Us</div>
       <div class="prose">
         <h3>The problem</h3>
@@ -447,7 +489,7 @@ Kinyarwanda-first with an EN/RW toggle (see <code>docs/step1-translations.md</co
   <!-- CONTACT -->
   <figure class="shot">
     <div class="phone"><div class="screen">
-      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang">EN | RW</span></div>
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang"><b style="color:#247A45">RW</b> | EN</span></div>
       <div class="pg-title">Contact Us</div>
       <div class="field"><label>Name <span class="req">*</span></label><div class="input">Your name</div></div>
       <div class="field"><label>Email <span class="req">*</span></label><div class="input">you@example.com</div></div>
@@ -469,7 +511,7 @@ Kinyarwanda-first with an EN/RW toggle (see <code>docs/step1-translations.md</co
   <!-- PRIVACY / POLICIES -->
   <figure class="shot">
     <div class="phone"><div class="screen">
-      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang">EN | RW</span></div>
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang"><b style="color:#247A45">RW</b> | EN</span></div>
       <div class="pg-title">Privacy Policy</div>
       <div class="prose">
         <h3>What we collect</h3><p>Name, phone, email, location, listings — only to run your account and the marketplace.</p>
@@ -491,7 +533,7 @@ Kinyarwanda-first with an EN/RW toggle (see <code>docs/step1-translations.md</co
   <!-- LOGIN -->
   <figure class="shot">
     <div class="phone"><div class="screen">
-      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang">EN | RW</span></div>
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang"><b style="color:#247A45">RW</b> | EN</span></div>
       <div class="pg-title">Log in</div>
       <div class="field" style="margin-top:8px"><label>Email <span class="req">*</span></label><div class="input">you@example.com</div></div>
       <div class="field"><label>Password <span class="req">*</span></label><div class="input">•••••••• &nbsp; show</div></div>
@@ -509,16 +551,18 @@ Kinyarwanda-first with an EN/RW toggle (see <code>docs/step1-translations.md</co
   <!-- REGISTER CHOICE -->
   <figure class="shot">
     <div class="phone"><div class="screen">
-      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang">EN | RW</span></div>
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang"><b style="color:#247A45">RW</b> | EN</span></div>
       <div class="pg-title">Create your account</div>
       <p class="meta" style="padding:0 12px 8px">First, tell us who you are:</p>
       <div class="big-choice active"><b>I am a buyer</b><span>I want to find and buy produce</span></div>
       <div class="big-choice"><b>I am a farmer</b><span>I want to list and sell my produce</span></div>
+      <div class="big-choice"><b>I am both</b><span>I sell my produce and I also buy from others</span></div>
       <div class="btn">Continue</div>
       <div class="wf-footer"><div class="links"><span>About</span><span>Contact</span><span>Privacy Policy</span><span>Platform Policies</span></div>SARURA</div>
     </div></div>
     <figcaption><strong>Register — role choice (/register)</strong><ul>
-      <li>The register page asks: “I am a buyer” or “I am a farmer” (guide section 4).</li>
+      <li>The register page asks: “I am a buyer”, “I am a farmer” or “I am both” (founder review: one account can hold both roles).</li>
+      <li>Both-role accounts get a selling/buying view switcher in the dashboard; the role can also be changed later in Profile.</li>
       <li>A buyer created through the login gate lands in the buyer dashboard.</li>
     </ul></figcaption>
   </figure>
@@ -526,7 +570,7 @@ Kinyarwanda-first with an EN/RW toggle (see <code>docs/step1-translations.md</co
   <!-- REGISTER BUYER FORM -->
   <figure class="shot">
     <div class="phone"><div class="screen">
-      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang">EN | RW</span></div>
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang"><b style="color:#247A45">RW</b> | EN</span></div>
       <div class="pg-title">Create your buyer account</div>
       <p class="meta" style="padding:0 12px 6px">Free. You can browse without an account; you need one to negotiate.</p>
       <div class="field"><label>Full name <span class="req">*</span></label><div class="input">Amazina yombi</div></div>
@@ -548,7 +592,7 @@ Kinyarwanda-first with an EN/RW toggle (see <code>docs/step1-translations.md</co
   <!-- RESET PASSWORD -->
   <figure class="shot">
     <div class="phone"><div class="screen">
-      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang">EN | RW</span></div>
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang"><b style="color:#247A45">RW</b> | EN</span></div>
       <div class="pg-title">Reset your password</div>
       <p class="meta" style="padding:0 12px 8px">We will email you a link. It works once and expires after 30 minutes.</p>
       <div class="field"><label>Email <span class="req">*</span></label><div class="input">you@example.com</div></div>
@@ -564,15 +608,18 @@ Kinyarwanda-first with an EN/RW toggle (see <code>docs/step1-translations.md</co
 </div>
 
 <h2 class="group">2. Buyer dashboard (after login)</h2>
-<p class="group-sub">Sections: Overview, My requests, My orders, Messages, Saved products, Profile. Bottom tab bar on phones.</p>
+<p class="group-sub">Bottom tabs: Home, Requests, Orders, Messages, More. The More sheet holds
+Saved products, Profile, Language, Help &amp; Contact, Log out — so every section is reachable
+on small screens (founder review).</p>
 
 <div class="gallery">
 
   <!-- BUYER OVERVIEW -->
   <figure class="shot">
     <div class="phone"><div class="screen">
-      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang">EN | RW</span><span class="btn-login">Aline ●</span></div>
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang"><b style="color:#247A45">RW</b> | EN</span><span class="btn-login">Aline ●</span></div>
       <div class="pg-title">Muraho, Aline 👋</div>
+      <div class="note-box" style="margin-top:4px">You also sell on SARURA. <b style="color:#247A45">Switch to selling view →</b></div>
       <div class="stats">
         <div class="stat"><div class="v">2</div><div class="l">My requests</div></div>
         <div class="stat"><div class="v">1</div><div class="l">My orders</div></div>
@@ -582,15 +629,17 @@ Kinyarwanda-first with an EN/RW toggle (see <code>docs/step1-translations.md</co
       <div class="lrow"><div class="avatar sq">📦</div><div class="grow"><b>Beans · Huye</b><div class="meta">Your offer 850 RWF/kg was countered: 880 RWF/kg</div></div><span class="pill pending">Pending</span></div>
       <div class="lrow"><div class="avatar sq">💬</div><div class="grow"><b>Umutara Cooperative</b><div class="meta">“Yes, we can do 400 for 500 kg…”</div></div><span class="notecount">3</span></div>
       <div class="tabs">
-        <div class="tab active"><span class="ic"></span>Overview</div>
+        <div class="tab active"><span class="ic"></span>Home</div>
         <div class="tab"><span class="ic"></span>Requests</div>
         <div class="tab"><span class="ic"></span>Orders</div>
         <div class="tab"><span class="ic"></span>Messages</div>
-        <div class="tab"><span class="ic"></span>Profile</div>
+        <div class="tab"><span class="ic"></span>More</div>
       </div>
     </div></div>
-    <figcaption><strong>Buyer — Overview</strong><ul>
+    <figcaption><strong>Buyer — Overview (Home)</strong><ul>
       <li>Stats link into each section. Notification bell lives in the appbar (in-app + email in v1).</li>
+      <li>Bottom bar = 5 tabs; the rest (Saved products, Profile) live in the <b>More</b> sheet, so every section is reachable on small screens.</li>
+      <li>Dual accounts (farmer + buyer) see a “Switch to selling view” link at the top.</li>
     </ul></figcaption>
   </figure>
 
@@ -619,11 +668,11 @@ Kinyarwanda-first with an EN/RW toggle (see <code>docs/step1-translations.md</co
         <span class="pill pending">Pending</span>
       </div>
       <div class="tabs">
-        <div class="tab"><span class="ic"></span>Overview</div>
+        <div class="tab"><span class="ic"></span>Home</div>
         <div class="tab active"><span class="ic"></span>Requests</div>
         <div class="tab"><span class="ic"></span>Orders</div>
         <div class="tab"><span class="ic"></span>Messages</div>
-        <div class="tab"><span class="ic"></span>Profile</div>
+        <div class="tab"><span class="ic"></span>More</div>
       </div>
     </div></div>
     <figcaption><strong>Buyer — My requests</strong><ul>
@@ -659,9 +708,9 @@ Kinyarwanda-first with an EN/RW toggle (see <code>docs/step1-translations.md</co
         <span class="pill bad">Cancelled</span>
       </div>
       <div class="tabs">
-        <div class="tab"><span class="ic"></span>Overview</div><div class="tab"><span class="ic"></span>Requests</div>
+        <div class="tab"><span class="ic"></span>Home</div><div class="tab"><span class="ic"></span>Requests</div>
         <div class="tab active"><span class="ic"></span>Orders</div><div class="tab"><span class="ic"></span>Messages</div>
-        <div class="tab"><span class="ic"></span>Profile</div>
+        <div class="tab"><span class="ic"></span>More</div>
       </div>
     </div></div>
     <figcaption><strong>Buyer — My orders</strong><ul>
@@ -693,14 +742,52 @@ Kinyarwanda-first with an EN/RW toggle (see <code>docs/step1-translations.md</co
       </div>
       <div class="note-box">Conversations with no activity for 12 months are removed automatically.</div>
       <div class="tabs">
-        <div class="tab"><span class="ic"></span>Overview</div><div class="tab"><span class="ic"></span>Requests</div>
+        <div class="tab"><span class="ic"></span>Home</div><div class="tab"><span class="ic"></span>Requests</div>
         <div class="tab"><span class="ic"></span>Orders</div><div class="tab active"><span class="ic"></span>Messages</div>
-        <div class="tab"><span class="ic"></span>Profile</div>
+        <div class="tab"><span class="ic"></span>More</div>
       </div>
     </div></div>
     <figcaption><strong>Buyer/Farmer — Messages (list)</strong><ul>
       <li>One conversation per buyer + farmer + product; shows product context.</li>
       <li>Unread counters (guide section 8). Same list component for both dashboards.</li>
+      <li>Buyers reach Messages from the bottom tab; farmers reach it from Home (unread count) or the More sheet.</li>
+    </ul></figcaption>
+  </figure>
+
+  <!-- MORE SHEET -->
+  <figure class="shot">
+    <div class="phone"><div class="screen">
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang"><b style="color:#247A45">RW</b> | EN</span><span class="btn-login">Aline ●</span></div>
+      <div class="pg-title">Muraho, Aline 👋</div>
+      <div class="stats">
+        <div class="stat"><div class="v">2</div><div class="l">My requests</div></div>
+        <div class="stat"><div class="v">1</div><div class="l">My orders</div></div>
+        <div class="stat"><div class="v">3</div><div class="l">Unread messages</div></div>
+      </div>
+      <div class="modal">
+        <div class="sheet">
+          <h3>More</h3>
+          <p>Everything else in your dashboard:</p>
+          <div class="lrow" style="border:1px solid var(--border);border-radius:10px;margin-bottom:6px;padding:12px 10px"><span>🔖</span><div class="grow"><b>Saved products</b></div><span class="navlink">→</span></div>
+          <div class="lrow" style="border:1px solid var(--border);border-radius:10px;margin-bottom:6px;padding:12px 10px"><span>👤</span><div class="grow"><b>Profile</b></div><span class="navlink">→</span></div>
+          <div class="lrow" style="border:1px solid var(--border);border-radius:10px;margin-bottom:6px;padding:12px 10px"><span>🌐</span><div class="grow"><b>Language</b><div class="meta">Kinyarwanda (default) · English</div></div><span class="navlink">→</span></div>
+          <div class="lrow" style="border:1px solid var(--border);border-radius:10px;margin-bottom:6px;padding:12px 10px"><span>❓</span><div class="grow"><b>Help &amp; Contact</b></div><span class="navlink">→</span></div>
+          <div class="btn danger" style="min-height:40px">Log out</div>
+        </div>
+      </div>
+      <div class="tabs">
+        <div class="tab"><span class="ic"></span>Home</div>
+        <div class="tab"><span class="ic"></span>Requests</div>
+        <div class="tab"><span class="ic"></span>Orders</div>
+        <div class="tab"><span class="ic"></span>Messages</div>
+        <div class="tab active"><span class="ic"></span>More</div>
+      </div>
+    </div></div>
+    <figcaption><strong>More sheet (5th tab)</strong><ul>
+      <li>The <b>More</b> tab opens this sheet, so every dashboard section is reachable on small screens (founder review).</li>
+      <li>Buyer sheet: Saved products, Profile, Language, Help &amp; Contact, Log out.</li>
+      <li>Farmer sheet adds: <b>Messages</b> (with unread badge), <b>Add product</b>, and <b>Saved products</b>.</li>
+      <li>Sheet closes with an ✕ or by tapping outside; it is a menu, not a separate page.</li>
     </ul></figcaption>
   </figure>
 
@@ -748,12 +835,13 @@ Kinyarwanda-first with an EN/RW toggle (see <code>docs/step1-translations.md</co
       </div></div>
       <div class="btn ter" style="min-height:36px">Remove from saved</div>
       <div class="tabs">
-        <div class="tab"><span class="ic"></span>Overview</div><div class="tab"><span class="ic"></span>Requests</div>
+        <div class="tab"><span class="ic"></span>Home</div><div class="tab"><span class="ic"></span>Requests</div>
         <div class="tab"><span class="ic"></span>Orders</div><div class="tab"><span class="ic"></span>Messages</div>
-        <div class="tab active"><span class="ic"></span>Profile</div>
+        <div class="tab active"><span class="ic"></span>More</div>
       </div>
     </div></div>
     <figcaption><strong>Buyer — Saved products</strong><ul>
+      <li>Reached from the <b>More</b> sheet; the More tab stays highlighted.</li>
       <li>Unique buyer+product pair in the database (guide section 7).</li>
     </ul></figcaption>
   </figure>
@@ -762,11 +850,13 @@ Kinyarwanda-first with an EN/RW toggle (see <code>docs/step1-translations.md</co
   <figure class="shot">
     <div class="phone"><div class="screen">
       <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="btn-login">Aline ●</span></div>
-      <div class="pg-title">Profile</div>
+      <div class="pg-title"><span class="navlink">← More</span> · Profile</div>
       <div class="field"><label>Full name</label><div class="input">Aline Uwase</div></div>
       <div class="field"><label>Email</label><div class="input">aline@example.rw</div></div>
       <div class="field"><label>Phone <span class="hint">(private)</span></label><div class="input">+250 788 111 222</div></div>
+      <div class="field"><label>Province</label><div class="input">City of Kigali ▾</div></div>
       <div class="field"><label>District</label><div class="input">Kicukiro ▾</div></div>
+      <div class="field"><label>My roles</label><div class="input">Buyer · Farmer ▾ <span class="hint">add or remove a role anytime</span></div></div>
       <div class="field"><label>Buyer type</label><div class="input">Restaurant ▾</div></div>
       <div class="field"><label>Language</label><div class="input">Kinyarwanda ▾</div></div>
       <div class="btn">Save changes</div>
@@ -775,22 +865,25 @@ Kinyarwanda-first with an EN/RW toggle (see <code>docs/step1-translations.md</co
       <div class="wf-footer"><div class="links"><span>About</span><span>Contact</span><span>Privacy Policy</span><span>Platform Policies</span></div>SARURA</div>
     </div></div>
     <figcaption><strong>Buyer — Profile</strong><ul>
-      <li>Phone/email labeled private. Delete-account flow also in Privacy Policy.</li>
+      <li>Reached from the <b>More</b> sheet. Phone/email labeled private. Delete-account flow also in Privacy Policy.</li>
+      <li>Location uses province → district (cascading); dual-role accounts manage both roles here.</li>
     </ul></figcaption>
   </figure>
 
 </div>
 
 <h2 class="group">3. Farmer dashboard (after login)</h2>
-<p class="group-sub">Sections: Overview, My products, Add product, Requests received, Orders, Messages, Profile.</p>
+<p class="group-sub">Bottom tabs: Home, My products, Requests, Orders, More. The More sheet holds
+Messages (unread badge), Add product, Saved products, Profile, Language, Log out.</p>
 
 <div class="gallery">
 
   <!-- FARMER OVERVIEW -->
   <figure class="shot">
     <div class="phone"><div class="screen">
-      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang">EN | RW</span><span class="btn-login">Umutara ●</span></div>
+      <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="lang"><b style="color:#247A45">RW</b> | EN</span><span class="btn-login">Umutara ●</span></div>
       <div class="pg-title">Muraho, Umutara Cooperative</div>
+      <div class="note-box" style="margin-top:4px">You also buy on SARURA. <b style="color:#247A45">Switch to buying view →</b></div>
       <div class="stats">
         <div class="stat"><div class="v">6</div><div class="l">Active listings</div></div>
         <div class="stat"><div class="v">2</div><div class="l">Requests received</div></div>
@@ -800,13 +893,15 @@ Kinyarwanda-first with an EN/RW toggle (see <code>docs/step1-translations.md</co
       <div class="section-h">New requests</div>
       <div class="lrow"><div class="avatar sq">🫘</div><div class="grow"><b>Aline U. — Beans</b><div class="meta">300 kg · offers 850 RWF/kg</div></div><span class="pill pending">Pending</span></div>
       <div class="tabs">
-        <div class="tab active"><span class="ic"></span>Overview</div><div class="tab"><span class="ic"></span>Products</div>
+        <div class="tab active"><span class="ic"></span>Home</div><div class="tab"><span class="ic"></span>Products</div>
         <div class="tab"><span class="ic"></span>Requests</div><div class="tab"><span class="ic"></span>Orders</div>
-        <div class="tab"><span class="ic"></span>Profile</div>
+        <div class="tab"><span class="ic"></span>More</div>
       </div>
     </div></div>
-    <figcaption><strong>Farmer — Overview</strong><ul>
-      <li>Add product is the primary action. Verification status shown in profile.</li>
+    <figcaption><strong>Farmer — Overview (Home)</strong><ul>
+      <li>Add product is the primary action, also in the More sheet. Verification status shown in profile.</li>
+      <li>Dual accounts (farmer + buyer) see a “Switch to buying view” link at the top.</li>
+      <li>Unread-messages stat links straight to Messages (farmers reach chat from Home or More).</li>
     </ul></figcaption>
   </figure>
 
@@ -839,9 +934,9 @@ Kinyarwanda-first with an EN/RW toggle (see <code>docs/step1-translations.md</co
         <span class="pill">Hidden</span>
       </div>
       <div class="tabs">
-        <div class="tab"><span class="ic"></span>Overview</div><div class="tab active"><span class="ic"></span>Products</div>
+        <div class="tab"><span class="ic"></span>Home</div><div class="tab active"><span class="ic"></span>Products</div>
         <div class="tab"><span class="ic"></span>Requests</div><div class="tab"><span class="ic"></span>Orders</div>
-        <div class="tab"><span class="ic"></span>Profile</div>
+        <div class="tab"><span class="ic"></span>More</div>
       </div>
     </div></div>
     <figcaption><strong>Farmer — My products</strong><ul>
@@ -862,20 +957,23 @@ Kinyarwanda-first with an EN/RW toggle (see <code>docs/step1-translations.md</co
       <div class="field"><label>Price (RWF/kg) <span class="req">*</span></label><div class="input">400</div></div>
       <div class="field" style="margin-bottom:4px"><label>Price basis</label></div>
       <div class="radio"><span class="r">Fixed</span><span class="r">Negotiable</span></div>
-      <div class="field"><label>District <span class="req">*</span></label><div class="input">Musanze ▾</div></div>
-      <div class="field"><label>Sector <span class="req">*</span></label><div class="input">Kinigi</div></div>
+      <div class="field"><label>Province <span class="req">*</span></label><div class="input">Northern Province ▾</div><span class="hint">Choosing a province filters the districts.</span></div>
+      <div class="field"><label>District <span class="req">*</span></label><div class="input">Musanze ▾</div><span class="hint">District list follows the province.</span></div>
+      <div class="field"><label>Sector <span class="req">*</span></label><div class="input">Kinigi ▾</div><span class="hint">Sector list follows the district (415 sectors, names repeat across districts).</span></div>
+      <div class="field"><label>Cell <span class="hint">(optional)</span></label><div class="input">Kabatwa</div></div>
       <div class="field"><label>Available from</label><div class="input">15 Nov 2026</div></div>
       <div class="field" style="margin-bottom:4px"><label>Photos (max 5)</label></div>
       <div class="photo-add"><span class="p first">photo 1</span><span class="p">+ add</span></div>
       <div class="btn">Save product</div>
       <div class="tabs">
-        <div class="tab"><span class="ic"></span>Overview</div><div class="tab active"><span class="ic"></span>Products</div>
+        <div class="tab"><span class="ic"></span>Home</div><div class="tab active"><span class="ic"></span>Products</div>
         <div class="tab"><span class="ic"></span>Requests</div><div class="tab"><span class="ic"></span>Orders</div>
-        <div class="tab"><span class="ic"></span>Profile</div>
+        <div class="tab"><span class="ic"></span>More</div>
       </div>
     </div></div>
     <figcaption><strong>Farmer — Add product</strong><ul>
       <li>Same form used for editing. Validation happens again on the server.</li>
+      <li>Location = province → district → sector (cascading dropdowns, real Rwanda structure) + optional cell free text (founder review).</li>
       <li>Photos: JPG/PNG/WebP, ≤1MB each after compression, alt text auto-filled with crop name.</li>
     </ul></figcaption>
   </figure>
@@ -908,9 +1006,9 @@ Kinyarwanda-first with an EN/RW toggle (see <code>docs/step1-translations.md</co
         <span class="pill ok">Confirmed</span>
       </div>
       <div class="tabs">
-        <div class="tab"><span class="ic"></span>Overview</div><div class="tab"><span class="ic"></span>Products</div>
+        <div class="tab"><span class="ic"></span>Home</div><div class="tab"><span class="ic"></span>Products</div>
         <div class="tab active"><span class="ic"></span>Requests</div><div class="tab"><span class="ic"></span>Orders</div>
-        <div class="tab"><span class="ic"></span>Profile</div>
+        <div class="tab"><span class="ic"></span>More</div>
       </div>
     </div></div>
     <figcaption><strong>Farmer — Requests received</strong><ul>
@@ -940,9 +1038,9 @@ Kinyarwanda-first with an EN/RW toggle (see <code>docs/step1-translations.md</co
         <span class="pill ok">Completed</span>
       </div>
       <div class="tabs">
-        <div class="tab"><span class="ic"></span>Overview</div><div class="tab"><span class="ic"></span>Products</div>
+        <div class="tab"><span class="ic"></span>Home</div><div class="tab"><span class="ic"></span>Products</div>
         <div class="tab"><span class="ic"></span>Requests</div><div class="tab active"><span class="ic"></span>Orders</div>
-        <div class="tab"><span class="ic"></span>Profile</div>
+        <div class="tab"><span class="ic"></span>More</div>
       </div>
     </div></div>
     <figcaption><strong>Farmer — Orders</strong><ul>
@@ -955,30 +1053,358 @@ Kinyarwanda-first with an EN/RW toggle (see <code>docs/step1-translations.md</co
   <figure class="shot">
     <div class="phone"><div class="screen">
       <div class="appbar"><div class="logo"><span class="mark"></span>SARURA</div><span class="btn-login">Umutara ●</span></div>
-      <div class="pg-title">Profile</div>
+      <div class="pg-title"><span class="navlink">← More</span> · Profile</div>
       <div class="field"><label>Farm / cooperative name</label><div class="input">Umutara Cooperative</div></div>
       <div class="field"><label>Email</label><div class="input">umutara@example.rw</div></div>
       <div class="field"><label>Phone <span class="hint">(private)</span></label><div class="input">+250 788 333 444</div></div>
+      <div class="field"><label>Province</label><div class="input">Northern Province ▾</div></div>
       <div class="field"><label>District</label><div class="input">Musanze ▾</div></div>
+      <div class="field"><label>Sector</label><div class="input">Kinigi ▾</div></div>
+      <div class="field"><label>My roles</label><div class="input">Farmer · Buyer ▾</div></div>
       <div class="field"><label>Bio</label><div class="input" style="min-height:60px;align-items:flex-start;padding-top:8px">24 farmers in Kinigi…</div></div>
-      <div class="note-box">Verification: <b>Account verified ✓</b> (email confirmed). Identity review by admins comes later — you will be contacted.</div>
+      <div class="note-box"><b>Verification levels</b><br>
+        1. Unverified — not started<br>
+        2. <b>Account verified ✓ — you are here</b> (email confirmed)<br>
+        3. Identity reviewed — an admin checks your ID (later)<br>
+        4. Cooperative verified — a cooperative confirms you (later)</div>
       <div class="btn">Save changes</div>
       <div class="btn ter" style="min-height:36px">Change password</div>
-      <div class="wf-footer"><div class="links"><span>About</span><span>Contact</span><span>Privacy Policy</span><span>Platform Policies</span></div>SARURA</div>
+      <div class="tabs">
+        <div class="tab"><span class="ic"></span>Home</div><div class="tab"><span class="ic"></span>Products</div>
+        <div class="tab"><span class="ic"></span>Requests</div><div class="tab"><span class="ic"></span>Orders</div>
+        <div class="tab active"><span class="ic"></span>More</div>
+      </div>
     </div></div>
     <figcaption><strong>Farmer — Profile</strong><ul>
-      <li>Shows current verification level and what comes next (guide section 9).</li>
+      <li>Verification is a ladder of named levels — email confirmation is separate from identity/cooperative review (founder review).</li>
+      <li>Public profiles show the level as a word + badge, never an icon alone; level 3+ asks your permission to display “reviewed by”.</li>
+      <li>Location follows province → district → sector; roles can change (farmer · buyer · both).</li>
     </ul></figcaption>
   </figure>
 
 </div>
 
-<h2 class="group">4. Admin</h2>
-<p class="group-sub">Django's built-in admin, customized, on a non-obvious URL (guide section 4).
-Not wireframed as React pages. Screens: farmer verification queue, listings (hide/restore),
-users (ban), reports, contact messages, categories, statistics. All admin actions write to
-audit_logs; admins read a conversation only for a report or security issue, and each access
-is logged.</p>
+<h2 class="group">4. Admin dashboard (SARURA's own UI — founder review)</h2>
+<p class="group-sub">A staff-only React admin area (English-first, 2FA required), with its own UI
+for the daily work: overview statistics, farmer verification queue, listing moderation, user
+management, reports, contact-message inbox and the audit log. Django's built-in admin stays on a
+non-obvious URL for deep back-office tasks only. Every action below writes to audit_logs.</p>
+
+<div class="gallery admin">
+
+  <!-- ADMIN OVERVIEW -->
+  <figure class="shot">
+    <div class="browser"><div class="omni"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">sarura.rw/admin</span><span>Sophie ●</span></div>
+      <div class="admin-body">
+        <div class="admin-side">
+          <div class="brand">SARURA Admin</div>
+          <span class="a active">Overview</span>
+          <span class="a">Verification <span class="cnt">14</span></span>
+          <span class="a">Listings</span>
+          <span class="a">Users</span>
+          <span class="a">Reports <span class="cnt">3</span></span>
+          <span class="a">Contact messages</span>
+          <span class="a">Audit log</span>
+          <span class="a" style="margin-top:12px">Django admin ↗</span>
+        </div>
+        <div class="admin-main">
+          <div class="admin-h">Overview</div>
+          <div class="admin-sub">Monday 10 Nov 2026 · data refreshed 09:40</div>
+          <div class="kpis">
+            <div class="kpi"><div class="v">1,284</div><div class="l">Farmers (128 verified)</div></div>
+            <div class="kpi"><div class="v">3,902</div><div class="l">Buyers</div></div>
+            <div class="kpi"><div class="v">412</div><div class="l">Active listings</div></div>
+            <div class="kpi"><div class="v">96</div><div class="l">Orders this week</div></div>
+          </div>
+          <div class="kpis">
+            <div class="kpi warn"><div class="v">14</div><div class="l">Pending verifications</div></div>
+            <div class="kpi warn"><div class="v">3</div><div class="l">Open reports</div></div>
+            <div class="kpi bad"><div class="v">2</div><div class="l">Suspended users</div></div>
+          </div>
+          <div class="admin-sub" style="margin-top:4px">Orders per week (last 8 weeks)</div>
+          <div class="bar-chart">
+            <div class="b" style="height:30%"></div><div class="b" style="height:45%"></div>
+            <div class="b" style="height:38%"></div><div class="b" style="height:55%"></div>
+            <div class="b" style="height:60%"></div><div class="b" style="height:52%"></div>
+            <div class="b" style="height:70%"></div><div class="b hi" style="height:80%"></div>
+          </div>
+          <div class="admin-sub" style="margin-top:8px">Recent admin activity</div>
+          <table class="tbl">
+            <tr><td>09:32</td><td>Sophie</td><td>Marked identity reviewed</td><td>Umutara Cooperative</td></tr>
+            <tr><td>09:05</td><td>Sophie</td><td>Hid listing — reason: “not produce”</td><td>Maize, Nyagatare</td></tr>
+            <tr><td>08:47</td><td>Jean</td><td>Replied to contact message</td><td>#882</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+    <figcaption><strong>Admin — Overview</strong><ul>
+      <li>Amber KPIs = work waiting (pending verifications, open reports); red = problems (suspended users). Nothing is color-only — every tile has a label.</li>
+      <li>Each KPI links to its queue. Chart is plain SVG/CSS (no heavy chart lib needed in v1).</li>
+      <li>Recent activity is a live view of audit_logs. “Django admin ↗” opens the built-in admin on its non-obvious URL.</li>
+    </ul></figcaption>
+  </figure>
+
+  <!-- ADMIN VERIFICATION QUEUE -->
+  <figure class="shot">
+    <div class="browser"><div class="omni"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">sarura.rw/admin/verification</span><span>Sophie ●</span></div>
+      <div class="admin-body">
+        <div class="admin-side">
+          <div class="brand">SARURA Admin</div>
+          <span class="a">Overview</span>
+          <span class="a active">Verification <span class="cnt">14</span></span>
+          <span class="a">Listings</span>
+          <span class="a">Users</span>
+          <span class="a">Reports <span class="cnt">3</span></span>
+          <span class="a">Contact messages</span>
+          <span class="a">Audit log</span>
+          <span class="a" style="margin-top:12px">Django admin ↗</span>
+        </div>
+        <div class="admin-main">
+          <div class="admin-h">Farmer verification</div>
+          <div class="admin-sub">Level 1 (email) is automatic. This queue reviews levels 2–3: identity documents and cooperative confirmations.</div>
+          <div class="chips" style="padding:0 0 8px">
+            <span class="chip active">Identity submitted · 9</span><span class="chip">Cooperative requests · 5</span><span class="chip">History</span>
+          </div>
+          <table class="tbl">
+            <tr><th>Farmer</th><th>Location</th><th>Level now</th><th>Submitted</th><th>Actions</th></tr>
+            <tr>
+              <td><b>Umutara Cooperative</b><br><span class="meta">24 members, Kinigi</span></td>
+              <td>Musanze</td>
+              <td><span class="pill ok">Account verified</span></td>
+              <td>ID doc · 2 Nov</td>
+              <td class="act"><span class="btn small" style="background:#247A45;color:#fff">Mark identity reviewed</span><span class="btn small sec">Request info</span></td>
+            </tr>
+            <tr>
+              <td><b>Ndoli M.</b><br><span class="meta">solo farmer</span></td>
+              <td>Huye</td>
+              <td><span class="pill">Unverified</span></td>
+              <td>ID doc · 6 Nov</td>
+              <td class="act"><span class="btn small" style="background:#247A45;color:#fff">Mark identity reviewed</span><span class="btn small danger">Reject</span></td>
+            </tr>
+            <tr>
+              <td><b>Kabuye Farmers Group</b><br><span class="meta">wants cooperative status</span></td>
+              <td>Karongi</td>
+              <td><span class="pill ok">Identity reviewed</span></td>
+              <td>Cooperative docs · 9 Nov</td>
+              <td class="act"><span class="btn small" style="background:#247A45;color:#fff">Approve cooperative</span><span class="btn small sec">Open chat</span></td>
+            </tr>
+          </table>
+          <div class="admin-note">Every decision records <b>who, when and why</b> in audit_logs. A rejected farmer sees “your documents could not be verified — you can resubmit”, never a bare icon. “Cooperative verified” is shown on the farmer's public profile only with their permission.</div>
+        </div>
+      </div>
+    </div>
+    <figcaption><strong>Admin — Verification queue</strong><ul>
+      <li>Separates <b>email verification</b> (automatic, level 1) from <b>identity review</b> (level 2) and <b>cooperative verification</b> (level 3) — founder review.</li>
+      <li>Actions need a reason (modal) before saving; the farmer is notified in-app.</li>
+      <li>“Open chat” on a verification request is allowed and logged (trust-and-safety rule).</li>
+    </ul></figcaption>
+  </figure>
+
+  <!-- ADMIN LISTINGS -->
+  <figure class="shot">
+    <div class="browser"><div class="omni"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">sarura.rw/admin/listings</span><span>Sophie ●</span></div>
+      <div class="admin-body">
+        <div class="admin-side">
+          <div class="brand">SARURA Admin</div>
+          <span class="a">Overview</span>
+          <span class="a">Verification <span class="cnt">14</span></span>
+          <span class="a active">Listings</span>
+          <span class="a">Users</span>
+          <span class="a">Reports <span class="cnt">3</span></span>
+          <span class="a">Contact messages</span>
+          <span class="a">Audit log</span>
+          <span class="a" style="margin-top:12px">Django admin ↗</span>
+        </div>
+        <div class="admin-main">
+          <div class="admin-h">Listing moderation</div>
+          <div class="admin-sub">Hide, restore and inspect listings. Hiding is reversible; nothing is hard-deleted.</div>
+          <div class="chips" style="padding:0 0 8px">
+            <span class="chip active">Reported · 3</span><span class="chip">All active</span><span class="chip">Hidden · 5</span><span class="chip">Out of stock</span>
+          </div>
+          <table class="tbl">
+            <tr><th>Listing</th><th>Farmer</th><th>Location</th><th>Reports</th><th>Actions</th></tr>
+            <tr>
+              <td><b>“Fresh milk 2L”</b><br><span class="meta">listed 8 Nov</span></td>
+              <td>Ndoli M.</td>
+              <td>Huye</td>
+              <td>2 × “not produce rules”</td>
+              <td class="act"><span class="btn small danger">Hide</span><span class="btn small sec">View</span></td>
+            </tr>
+            <tr>
+              <td><b>Irish potato</b><br><span class="meta">listed 5 Nov</span></td>
+              <td>Umutara Cooperative</td>
+              <td>Musanze</td>
+              <td>1 × “wrong price”</td>
+              <td class="act"><span class="btn small sec">Dismiss report</span><span class="btn small sec">View</span></td>
+            </tr>
+            <tr>
+              <td><b>Beans</b><br><span class="meta">hidden 3 Nov — “duplicate lot”</span></td>
+              <td>Mukamana K.</td>
+              <td>Nyagatare</td>
+              <td>—</td>
+              <td class="act"><span class="btn small" style="background:#247A45;color:#fff">Restore</span></td>
+            </tr>
+          </table>
+          <div class="admin-note">Hide asks for a <b>reason</b>; the farmer sees “your listing was hidden: reason” and can edit + resubmit. Both hide and restore are written to audit_logs with actor and time.</div>
+        </div>
+      </div>
+    </div>
+    <figcaption><strong>Admin — Listings moderation</strong><ul>
+      <li>Reported listings first (amber badge). Hidden listings show their reason and can be restored.</li>
+      <li>“View” opens the public listing as an admin overlay (logged).</li>
+    </ul></figcaption>
+  </figure>
+
+  <!-- ADMIN USERS -->
+  <figure class="shot">
+    <div class="browser"><div class="omni"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">sarura.rw/admin/users</span><span>Sophie ●</span></div>
+      <div class="admin-body">
+        <div class="admin-side">
+          <div class="brand">SARURA Admin</div>
+          <span class="a">Overview</span>
+          <span class="a">Verification <span class="cnt">14</span></span>
+          <span class="a">Listings</span>
+          <span class="a active">Users</span>
+          <span class="a">Reports <span class="cnt">3</span></span>
+          <span class="a">Contact messages</span>
+          <span class="a">Audit log</span>
+          <span class="a" style="margin-top:12px">Django admin ↗</span>
+        </div>
+        <div class="admin-main">
+          <div class="admin-h">Users</div>
+          <div class="admin-sub">Search, inspect and suspend accounts. Suspending blocks login and hides listings.</div>
+          <div class="search" style="margin:0 0 8px">⌕ Search by name, email or phone…</div>
+          <div class="chips" style="padding:0 0 8px">
+            <span class="chip active">All</span><span class="chip">Farmers</span><span class="chip">Buyers</span><span class="chip">Both roles</span><span class="chip">Suspended</span>
+          </div>
+          <table class="tbl">
+            <tr><th>User</th><th>Roles</th><th>Verification</th><th>Joined</th><th>Status</th><th>Actions</th></tr>
+            <tr>
+              <td><b>Aline Uwase</b><br><span class="meta">aline@example.rw</span></td>
+              <td>Buyer</td>
+              <td><span class="pill ok">Account verified</span></td>
+              <td>Oct 2026</td>
+              <td><span class="pill ok">Active</span></td>
+              <td class="act"><span class="btn small sec">View</span></td>
+            </tr>
+            <tr>
+              <td><b>Umutara Cooperative</b><br><span class="meta">umutara@example.rw</span></td>
+              <td>Farmer · Buyer</td>
+              <td><span class="pill ok">Identity reviewed</span></td>
+              <td>Sep 2026</td>
+              <td><span class="pill ok">Active</span></td>
+              <td class="act"><span class="btn small sec">View</span></td>
+            </tr>
+            <tr>
+              <td><b>Ezeki K.</b><br><span class="meta">ezeki@example.rw</span></td>
+              <td>Farmer</td>
+              <td><span class="pill">Unverified</span></td>
+              <td>Aug 2026</td>
+              <td><span class="pill bad">Suspended</span></td>
+              <td class="act"><span class="btn small" style="background:#247A45;color:#fff">Reinstate</span><span class="btn small sec">View</span></td>
+            </tr>
+          </table>
+          <div class="admin-note">Suspend requires a <b>reason</b> (confirmation modal) and writes to audit_logs; the user's active listings are hidden at the same time. Admin/staff accounts are created in Django admin only — never from this screen or public registration.</div>
+        </div>
+      </div>
+    </div>
+    <figcaption><strong>Admin — Users</strong><ul>
+      <li>Users are never deleted (audit history); suspension is reversible.</li>
+      <li>The “Both roles” filter reflects dual farmer+buyer accounts (founder review).</li>
+    </ul></figcaption>
+  </figure>
+
+  <!-- ADMIN REPORTS + CONTACT -->
+  <figure class="shot">
+    <div class="browser"><div class="omni"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">sarura.rw/admin/reports</span><span>Sophie ●</span></div>
+      <div class="admin-body">
+        <div class="admin-side">
+          <div class="brand">SARURA Admin</div>
+          <span class="a">Overview</span>
+          <span class="a">Verification <span class="cnt">14</span></span>
+          <span class="a">Listings</span>
+          <span class="a">Users</span>
+          <span class="a active">Reports <span class="cnt">3</span></span>
+          <span class="a">Contact messages</span>
+          <span class="a">Audit log</span>
+          <span class="a" style="margin-top:12px">Django admin ↗</span>
+        </div>
+        <div class="admin-main">
+          <div class="admin-h">Reports</div>
+          <div class="admin-sub">Reports come from the Report buttons on listings, profiles and conversations.</div>
+          <table class="tbl">
+            <tr><th>Reported</th><th>Reporter says</th><th>Target</th><th>Received</th><th>Actions</th></tr>
+            <tr>
+              <td>Conversation</td>
+              <td>“Sent me a payment link outside SARURA”</td>
+              <td>Chat: Aline ↔ Ezeki K.</td>
+              <td>10 Nov</td>
+              <td class="act"><span class="btn small sec">Open conversation</span><span class="btn small danger">Suspend user</span></td>
+            </tr>
+            <tr>
+              <td>Listing</td>
+              <td>“Wrong price — 50,000 RWF/kg for beans”</td>
+              <td>Beans, Nyagatare</td>
+              <td>9 Nov</td>
+              <td class="act"><span class="btn small sec">Hide listing</span><span class="btn small sec">Dismiss</span></td>
+            </tr>
+          </table>
+          <div class="admin-note">Opening a reported conversation is the <b>only</b> admin access to chats, and each access is logged (actor, time, reason). Reporter identity stays private from the reported user.</div>
+          <div class="admin-h" style="margin-top:12px">Contact messages (inbox)</div>
+          <div class="admin-sub">From the public Contact page — support questions, partnership requests, data fixes.</div>
+          <table class="tbl">
+            <tr><th>From</th><th>Subject</th><th>Received</th><th>Status</th><th>Actions</th></tr>
+            <tr><td>kwizera@example.rw</td><td>Cannot reset password</td><td>10 Nov</td><td><span class="pill pending">New</span></td><td class="act"><span class="btn small" style="background:#247A45;color:#fff">Mark handled</span></td></tr>
+            <tr><td>agent@rcp.rw</td><td>Cooperative onboarding question</td><td>9 Nov</td><td><span class="pill ok">Handled</span></td><td class="act"><span class="btn small sec">View</span></td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+    <figcaption><strong>Admin — Reports and Contact inbox</strong><ul>
+      <li>Reports queue (trust &amp; safety) and the public contact-form inbox share one screen pattern: a filterable table with clear next actions.</li>
+      <li>Every action is one click away from the object it affects; each writes to audit_logs.</li>
+    </ul></figcaption>
+  </figure>
+
+  <!-- ADMIN AUDIT LOG -->
+  <figure class="shot">
+    <div class="browser"><div class="omni"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">sarura.rw/admin/audit-log</span><span>Sophie ●</span></div>
+      <div class="admin-body">
+        <div class="admin-side">
+          <div class="brand">SARURA Admin</div>
+          <span class="a">Overview</span>
+          <span class="a">Verification <span class="cnt">14</span></span>
+          <span class="a">Listings</span>
+          <span class="a">Users</span>
+          <span class="a">Reports <span class="cnt">3</span></span>
+          <span class="a">Contact messages</span>
+          <span class="a active">Audit log</span>
+          <span class="a" style="margin-top:12px">Django admin ↗</span>
+        </div>
+        <div class="admin-main">
+          <div class="admin-h">Audit log</div>
+          <div class="admin-sub">Read-only record of every admin action. Exportable (CSV) for compliance.</div>
+          <div class="chips" style="padding:0 0 8px">
+            <span class="chip active">All actions</span><span class="chip">Verification</span><span class="chip">Moderation</span><span class="chip">Users</span><span class="chip">Conversation access</span>
+          </div>
+          <table class="tbl">
+            <tr><th>Time</th><th>Actor</th><th>Action</th><th>Target</th><th>Reason given</th></tr>
+            <tr><td>10 Nov 09:32</td><td>Sophie</td><td>verification.level_changed → identity_reviewed</td><td>Umutara Cooperative</td><td>ID document matched</td></tr>
+            <tr><td>10 Nov 09:05</td><td>Sophie</td><td>listing.hidden</td><td>“Fresh milk 2L”</td><td>Not produce rules</td></tr>
+            <tr><td>10 Nov 08:58</td><td>Sophie</td><td>conversation.opened (report #41)</td><td>Chat: Aline ↔ Ezeki K.</td><td>Payment-link report</td></tr>
+            <tr><td>09 Nov 17:12</td><td>Jean</td><td>user.suspended</td><td>Ezeki K.</td><td>Scam attempt</td></tr>
+          </table>
+          <div class="admin-note">Filter by actor, action type or date. Rows can never be edited or deleted from this UI — only added by real actions.</div>
+        </div>
+      </div>
+    </div>
+    <figcaption><strong>Admin — Audit log</strong><ul>
+      <li>The same audit_logs table shown in Overview's “Recent activity”, with full filters here.</li>
+      <li>Exists from day one (Step 5 models) so nothing back-fills later.</li>
+    </ul></figcaption>
+  </figure>
+
+</div>
 
 <p class="sub" style="margin-top:40px">Desktop and tablet layouts expand these same components
 (product grid 2–4 columns, dashboard tabs become a sidebar). All wireframes respect: one primary
