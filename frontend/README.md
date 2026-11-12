@@ -1,7 +1,7 @@
 # SARURA frontend
 
-React + TypeScript + Vite + Tailwind CSS, following Step 6 of the development
-guide. Kinyarwanda is the default language; English is a toggle in the header.
+React + TypeScript + Vite + Tailwind CSS. Kinyarwanda is the default language;
+English is a toggle in the header.
 
 ## Local setup
 
@@ -11,9 +11,10 @@ npm install
 npm run dev
 ```
 
-The dev server prints the local URL (normally <http://localhost:5173>). The
-backend runs separately on <http://127.0.0.1:8000>; API calls will be wired up
-in the auth and dashboard steps.
+Run the Django backend separately on <http://127.0.0.1:8000>. The dev server
+proxies `/api` and `/media` to it (see `vite.config.ts`), so the browser uses a
+single origin, session cookies work, and uploaded photos load without CORS
+settings.
 
 ## Scripts
 
@@ -30,13 +31,44 @@ in the auth and dashboard steps.
 ```
 frontend/
   src/
-    components/layout/   # Header, mobile menu, language toggle, footer, public shell
-    components/ui/       # Button, Card, form fields, status pill, verification badge
+    components/layout/   # Header, mobile menu, language toggle, footer, page intro
+    components/marketplace/  # ProductCard, ProductGrid
+    components/ui/       # Button, Card, fields, feedback states, status/badge
     i18n/                # react-i18next setup and rw/en translation files
-    lib/                 # small helpers (cx)
-    pages/               # Foundation preview + temporary placeholders
-    test/                # Vitest setup
+    lib/                 # API client, fetch hook, formatters, class helper
+    pages/               # Public pages
+    test/                # Vitest setup and API mocks
+    types/               # API response types
 ```
+
+## Public pages
+
+| Route | Page | Notes |
+|---|---|---|
+| `/` | Home | Hero, search, popular categories, latest listings, how it works, calls to action |
+| `/marketplace` | Marketplace | Filters live in the URL: search, category, province/district/sector, price, quantity, verified, sort, page |
+| `/products/:id` | Product detail | Photos, price, quantity, location, farmer summary, login prompt |
+| `/farmers/:id` | Farmer profile | Name, district, verification badge, active listings; no phone or email |
+| `/how-it-works` | How It Works | Three steps for farmers and three for buyers |
+| `/about` | About Us | Problem, mission, how it works, story and team |
+| `/contact` | Contact Us | Validated form, hidden spam trap, rate-limit and error states |
+| `/privacy` | Privacy Policy | Collection, visibility, retention, choices and security |
+| `/policies` | Platform Policies | Listing rules, reports, cancellations, enforcement |
+| `/login`, `/register`, `/sell` | Coming-soon placeholders | Replaced by real flows in Step 8 |
+| `*` | Not found | Browse or go home |
+
+The contact details shown on `/contact` and `/privacy` are placeholders that
+need founder confirmation. See `docs/step7-public-content.md` for the `[review]`
+list.
+
+## API access
+
+- `src/lib/api.ts` wraps `fetch`, builds query strings, parses JSON and throws a
+  typed `ApiError` with the HTTP status.
+- `src/lib/useApi.ts` handles loading/error state and aborts stale requests.
+- `VITE_API_BASE_URL` can override the default `/api` base.
+- Image URLs come from the backend as absolute URLs, which the `/media` dev
+  proxy forwards to Django.
 
 ## Colour palette
 
@@ -67,16 +99,11 @@ collapses to a menu button, and every action stays reachable on a phone.
   `sarura.language`, and `<html lang>` is updated when it changes.
 - Components read strings with `useTranslation()`; never hard-code UI text in a
   component.
+- Dates, prices and counts use `Intl` formatters in `src/lib/format.ts` with a
+  `rw-RW` / `en-RW` locale.
 
 Django's `LANGUAGE_CODE` stays `en-us` because Django ships no Kinyarwanda
 translations; the React app owns the interface language.
-
-## Temporary preview route
-
-`/` currently renders `FoundationPage`, a preview of the shared components
-(hero, search, how-it-works, buttons, cards, statuses, verification badges and a
-form). All other public paths render `PlaceholderPage`. Both are replaced by the
-real public pages in Step 7; do not build product features on top of them.
 
 ## Design rules
 
@@ -93,3 +120,11 @@ From `docs/step1-marketplace-rules.md`:
   Cooperative verified. A check mark never appears without its label.
 - Forms put labels above inputs and show hints and errors next to the field,
   linked with `aria-describedby` and `aria-invalid`.
+- Missing photos show the words "No photo" instead of an icon.
+
+## Tests
+
+`npm test` covers the header and language toggle, shared UI, the product card,
+the home page, marketplace filters and pagination state, the contact form
+(validation, payload, rate limit and server errors) and the not-found page.
+API calls are mocked with a small fetch double in `src/test/apiMock.ts`.

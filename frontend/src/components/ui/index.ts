@@ -2,6 +2,8 @@ export { Button, buttonStyles } from "./Button";
 export type { ButtonProps, ButtonSize, ButtonVariant } from "./Button";
 export { Card, CardBody, CardFooter, CardHeader, CardMeta, CardTitle } from "./Card";
 export type { CardProps } from "./Card";
+export { EmptyState, ErrorState, LoadingState } from "./Feedback";
+export type { EmptyStateProps, ErrorStateProps } from "./Feedback";
 export {
   SelectField,
   TextField,

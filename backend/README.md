@@ -98,6 +98,26 @@ cascade:
 Invalid ids or a missing `district` return `400`. Cell is free text on the user
 profile because the sector is the marketplace's working area.
 
+## Contact API (`/api/contact/`)
+
+| Method | Path | Auth | Purpose |
+|---|---|---|---|
+| POST | `contact/` | public | Send a message from the Contact Us page |
+
+The body is JSON with `name`, `email`, `subject` and `message`. Every field is
+validated on the server, and a successful send returns `201` with a plain
+thank-you message. Messages are stored in `ContactMessage` and listed in Django
+admin (`Contact messages`), where staff can mark them handled.
+
+- `CONTACT_EMAIL` (default `hello@sarura.rw`) receives the notification email.
+- `CONTACT_RATE_LIMIT` (default `5/hour`) limits submissions per IP address.
+  Going over the limit returns `429`.
+- The form includes a hidden `website` field. When it is filled, the view
+  returns the same `201` message but stores and sends nothing, so bots get no
+  signal that they were caught.
+- If the notification email fails, the message is still stored and the error is
+  logged, so no enquiry is lost.
+
 ## Marketplace API (`/api/`)
 
 | Method | Path | Auth | Purpose |

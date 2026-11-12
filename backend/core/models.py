@@ -50,3 +50,27 @@ class Sector(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.district.name})"
+
+
+class ContactMessage(models.Model):
+    """A message sent from the public Contact Us form (guide §9, Step 7).
+
+    Only these four fields come from the form. `handled` is for the admin team
+    so unanswered messages can be found quickly.
+    """
+
+    name = models.CharField(max_length=100)
+    email = models.EmailField(max_length=254)
+    subject = models.CharField(max_length=150)
+    message = models.TextField(max_length=5000)
+    created_at = models.DateTimeField(auto_now_add=True)
+    handled = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["handled", "-created_at"], name="contact_handled_created_idx"),
+        ]
+
+    def __str__(self):
+        return f"{self.subject} — {self.name}"

@@ -1,9 +1,14 @@
 from io import StringIO
+from unittest import mock
 
+from django.core import mail
+from django.core.cache import cache
 from django.core.management import call_command
 from django.test import TestCase
+from rest_framework.test import APIClient
 
-from core.models import District, Province, Sector
+from core.models import ContactMessage, District, Province, Sector
+from core.throttles import ContactRateThrottle
 
 
 class HealthCheckTests(TestCase):
@@ -104,3 +109,76 @@ class LocationApiTests(TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertIn("province", response.json())
+
+
+class ContactMessageTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        self.client = APIClient()
+        self.payload = {
+            "name": "Aline Uwase",
+            "email": "aline@example.com",
+            "subject": "Question about beans",
+            "message": "Do you have beans available in Kigali?",
+        }
+
+    def test_public_visitor_can_send_a_message_and_admin_is_emailed(self):
+        response = self.client.post("/api/contact/", self.payload)
+
+        self.assertEqual(response.status_code, 201)
+        self.assertIn("received", response.data["detail"])
+
+        message = ContactMessage.objects.get()
+        self.assertEqual(message.name, "Aline Uwase")
+        self.assertEqual(message.email, "aline@example.com")
+        self.assertEqual(message.subject, "Question about beans")
+        self.assertFalse(message.handled)
+
+        self.assertEqual(len(mail.outbox), 1)
+        email = mail.outbox[0]
+        self.assertEqual(email.subject, "[SARURA contact] Question about beans")
+        self.assertEqual(email.to, ["hello@sarura.rw"])
+        self.assertIn("Aline Uwase <aline@example.com>", email.body)
+        self.assertIn("Do you have beans available", email.body)
+
+    def test_invalid_fields_are_rejected_and_nothing_is_saved(self):
+        response = self.client.post(
+            "/api/contact/",
+            {**self.payload, "email": "not-an-email", "message": "   "},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("email", response.data)
+        self.assertIn("message", response.data)
+        self.assertEqual(ContactMessage.objects.count(), 0)
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_hidden_spam_trap_drops_the_message_silently(self):
+        response = self.client.post(
+            "/api/contact/", {**self.payload, "website": "https://spam.example"}
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(ContactMessage.objects.count(), 0)
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_contact_details_are_trimmed(self):
+        self.client.post(
+            "/api/contact/",
+            {**self.payload, "name": "  Aline  ", "subject": "  Beans  "},
+        )
+
+        message = ContactMessage.objects.get()
+        self.assertEqual(message.name, "Aline")
+        self.assertEqual(message.subject, "Beans")
+
+    @mock.patch.object(ContactRateThrottle, "rate", "2/hour", create=True)
+    def test_rate_limit_blocks_after_the_configured_number_of_messages(self):
+        self.assertEqual(self.client.post("/api/contact/", self.payload).status_code, 201)
+        self.assertEqual(self.client.post("/api/contact/", self.payload).status_code, 201)
+
+        blocked = self.client.post("/api/contact/", self.payload)
+
+        self.assertEqual(blocked.status_code, 429)
+        self.assertEqual(ContactMessage.objects.count(), 2)
+        self.assertEqual(len(mail.outbox), 2)

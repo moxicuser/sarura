@@ -1,8 +1,8 @@
-"""Django admin for Rwanda location reference data."""
+"""Django admin for Rwanda location reference data and contact messages."""
 
 from django.contrib import admin
 
-from core.models import District, Province, Sector
+from core.models import ContactMessage, District, Province, Sector
 
 
 class DistrictInline(admin.TabularInline):
@@ -36,3 +36,17 @@ class SectorAdmin(admin.ModelAdmin):
     @admin.display(description="Province", ordering="district__province__name")
     def province_name(self, obj):
         return obj.district.province.name
+
+
+@admin.register(ContactMessage)
+class ContactMessageAdmin(admin.ModelAdmin):
+    list_display = ("subject", "name", "email", "created_at", "handled")
+    list_filter = ("handled", "created_at")
+    search_fields = ("name", "email", "subject", "message")
+    list_editable = ("handled",)
+    readonly_fields = ("name", "email", "subject", "message", "created_at")
+    date_hierarchy = "created_at"
+
+    def has_add_permission(self, request):
+        # Messages only arrive through the public form; admins reply by email.
+        return False

@@ -200,6 +200,10 @@ EMAIL_BACKEND = os.getenv(
 )
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "SARURA <no-reply@sarura.rw>")
 
+# Public Contact Us form: where enquiries are sent and how many an IP may send.
+CONTACT_EMAIL = os.getenv("CONTACT_EMAIL", "hello@sarura.rw")
+CONTACT_RATE_LIMIT = os.getenv("CONTACT_RATE_LIMIT", "5/hour")
+
 
 # ---------------------------------------------------------------------------
 # Static and media files
@@ -227,6 +231,9 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 24,
+    "DEFAULT_THROTTLE_RATES": {
+        "contact": CONTACT_RATE_LIMIT,
+    },
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
     ],
