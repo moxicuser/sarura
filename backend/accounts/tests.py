@@ -1,8 +1,12 @@
 """Tests for Step 3: accounts, roles, profiles, verification and permissions."""
 
+import re
+from unittest import mock
+
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth.tokens import default_token_generator
 from django.core import mail
+from django.core.cache import cache
 from django.test import TestCase
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
@@ -10,6 +14,11 @@ from rest_framework.test import APIClient, APIRequestFactory
 
 from accounts.models import BuyerProfile, FarmerProfile, User
 from accounts.permissions import IsBuyer, IsFarmer, IsOwner
+from accounts.throttles import (
+    LoginRateThrottle,
+    PasswordResetRateThrottle,
+    RegisterRateThrottle,
+)
 from core.models import District, Province, Sector
 
 
@@ -36,6 +45,12 @@ class AccountTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.loc = make_locations()
+
+    def setUp(self):
+        # Throttle counters live in the cache, not the database, so clear them
+        # before every test. Otherwise repeated logins across the suite would
+        # hit the limiter and make unrelated tests fail.
+        cache.clear()
 
     def register_payload(self, **overrides):
         data = {
@@ -77,6 +92,7 @@ class AccountTestCase(TestCase):
 
 class RegistrationTests(AccountTestCase):
     def setUp(self):
+        super().setUp()
         self.client = APIClient()
 
     def test_farmer_registration_creates_profile_and_logs_in(self):
@@ -100,6 +116,26 @@ class RegistrationTests(AccountTestCase):
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn("Verify your SARURA email", mail.outbox[0].subject)
         self.assertEqual(mail.outbox[0].to, ["aline@example.com"])
+
+    def test_verification_link_from_registration_email_still_works(self):
+        # Registering signs the user in immediately. The token in the welcome
+        # email must survive that login (it hashes last_login), so the link
+        # they open from their inbox is valid.
+        response = self.client.post(
+            "/api/auth/register/",
+            self.register_payload(),
+            format="json",
+        )
+        self.assertEqual(response.status_code, 201, response.data)
+
+        match = re.search(
+            r"/verify-email\?uid=([^&]+)&token=([\w-]+)", mail.outbox[0].body
+        )
+        self.assertIsNotNone(match)
+
+        verify = self.client.get(f"/api/auth/verify-email/?uid={match.group(1)}&token={match.group(2)}")
+        self.assertEqual(verify.status_code, 200, verify.data)
+        self.assertEqual(verify.data["user"]["verification_level"], "account")
 
     def test_dual_role_registration_creates_both_profiles(self):
         response = self.client.post(
@@ -183,6 +219,7 @@ class RegistrationTests(AccountTestCase):
 
 class LoginLogoutTests(AccountTestCase):
     def setUp(self):
+        super().setUp()
         self.client = APIClient()
         self.user = self.make_user()
 
@@ -226,6 +263,7 @@ class LoginLogoutTests(AccountTestCase):
 
 class ProfileTests(AccountTestCase):
     def setUp(self):
+        super().setUp()
         self.client = APIClient()
         self.user = self.make_user()
         self.client.force_login(self.user)
@@ -268,6 +306,7 @@ class ProfileTests(AccountTestCase):
 
 class EmailVerificationTests(AccountTestCase):
     def setUp(self):
+        super().setUp()
         self.client = APIClient()
         self.user = self.make_user()
 
@@ -316,6 +355,7 @@ class EmailVerificationTests(AccountTestCase):
 
 class PasswordResetTests(AccountTestCase):
     def setUp(self):
+        super().setUp()
         self.client = APIClient()
         self.user = self.make_user()
 
@@ -373,6 +413,7 @@ class PasswordResetTests(AccountTestCase):
 
 class PermissionClassTests(AccountTestCase):
     def setUp(self):
+        super().setUp()
         self.factory = APIRequestFactory()
         self.farmer = self.make_user()
         self.buyer = self.make_user(
@@ -428,3 +469,70 @@ class VerificationLadderModelTests(AccountTestCase):
         user.verification_level = User.VerificationLevel.COOPERATIVE
         user.save(update_fields=["verification_level"])
         self.assertTrue(user.is_verified_farmer)
+
+
+class AuthThrottleTests(AccountTestCase):
+    """Guide section 7: rate-limit login, registration and password reset."""
+
+    def setUp(self):
+        super().setUp()
+        self.client = APIClient()
+
+    def test_login_is_rate_limited_per_ip(self):
+        with mock.patch.object(LoginRateThrottle, "get_rate", return_value="2/min"):
+            first = self.client.post(
+                "/api/auth/login/",
+                {"email": "farmer@example.com", "password": "WrongPass123!"},
+                format="json",
+            )
+            second = self.client.post(
+                "/api/auth/login/",
+                {"email": "farmer@example.com", "password": "WrongPass123!"},
+                format="json",
+            )
+            blocked = self.client.post(
+                "/api/auth/login/",
+                {"email": "farmer@example.com", "password": "WrongPass123!"},
+                format="json",
+            )
+
+        self.assertEqual(first.status_code, 400)
+        self.assertEqual(second.status_code, 400)
+        self.assertEqual(blocked.status_code, 429)
+        self.assertIn("detail", blocked.data)
+
+    def test_registration_is_rate_limited_per_ip(self):
+        with mock.patch.object(RegisterRateThrottle, "get_rate", return_value="1/hour"):
+            first = self.client.post(
+                "/api/auth/register/",
+                self.register_payload(is_buyer=True, is_farmer=False),
+                format="json",
+            )
+            blocked = self.client.post(
+                "/api/auth/register/",
+                self.register_payload(
+                    email="second@example.com", phone="0733000000", is_farmer=True
+                ),
+                format="json",
+            )
+
+        self.assertEqual(first.status_code, 201, first.data)
+        self.assertEqual(blocked.status_code, 429)
+
+    def test_password_reset_is_rate_limited_per_ip(self):
+        with mock.patch.object(
+            PasswordResetRateThrottle, "get_rate", return_value="1/hour"
+        ):
+            first = self.client.post(
+                "/api/auth/password-reset/",
+                {"email": "farmer@example.com"},
+                format="json",
+            )
+            blocked = self.client.post(
+                "/api/auth/password-reset/",
+                {"email": "farmer@example.com"},
+                format="json",
+            )
+
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(blocked.status_code, 429)

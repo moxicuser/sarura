@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router-dom";
 
+import { LoginGate } from "../components/auth/LoginGate";
 import { ErrorState, LoadingState, VerifiedBadge, buttonStyles } from "../components/ui";
 import { normalizeLanguage } from "../i18n";
 import { apiGet } from "../lib/api";
+import { useAuth } from "../lib/auth";
 import {
   badgeLevel,
   formatDate,
@@ -19,9 +21,11 @@ import { NotFoundPage } from "./NotFoundPage";
 export function ProductDetailPage() {
   const { t, i18n } = useTranslation();
   const language = normalizeLanguage(i18n.resolvedLanguage ?? i18n.language);
+  const { status } = useAuth();
   const { id } = useParams();
   const productId = Number(id);
   const [activeImage, setActiveImage] = useState(0);
+  const [gateOpen, setGateOpen] = useState(false);
 
   const product = useApi<ProductDetail>(
     (signal) => apiGet<ProductDetail>(`/products/${productId}/`, {}, signal),
@@ -184,15 +188,29 @@ export function ProductDetailPage() {
             </p>
           </div>
 
-          <Link
-            to={`/login?next=${encodeURIComponent(`/products/${data.id}`)}`}
-            className={buttonStyles({ size: "lg", fullWidth: true, className: "mt-4" })}
-          >
-            {t("product.contactFarmer")}
-          </Link>
-          <p className="mt-2 text-center text-xs text-sarura-gray">
-            {t("product.loginNote")}
-          </p>
+          {status === "authenticated" ? (
+            <div className="mt-4 rounded-xl border border-sarura-green/40 bg-sarura-green-light p-4">
+              <p className="text-sm font-bold text-sarura-green-dark">
+                {t("product.contactReadyTitle")}
+              </p>
+              <p className="mt-1 text-sm leading-relaxed text-sarura-gray">
+                {t("product.contactReadyBody")}
+              </p>
+            </div>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => setGateOpen(true)}
+                className={buttonStyles({ size: "lg", fullWidth: true, className: "mt-4" })}
+              >
+                {t("product.contactFarmer")}
+              </button>
+              <p className="mt-2 text-center text-xs text-sarura-gray">
+                {t("product.loginNote")}
+              </p>
+            </>
+          )}
         </div>
       </div>
 
@@ -213,6 +231,12 @@ export function ProductDetailPage() {
           </ul>
         </section>
       </div>
+
+      <LoginGate
+        open={gateOpen}
+        next={`/products/${data.id}`}
+        onClose={() => setGateOpen(false)}
+      />
     </section>
   );
 }

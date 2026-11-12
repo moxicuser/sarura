@@ -31,30 +31,37 @@ settings.
 ```
 frontend/
   src/
+    components/auth/     # auth shell, protected route, login gate, form alert
     components/layout/   # Header, mobile menu, language toggle, footer, page intro
     components/marketplace/  # ProductCard, ProductGrid
     components/ui/       # Button, Card, fields, feedback states, status/badge
     i18n/                # react-i18next setup and rw/en translation files
-    lib/                 # API client, fetch hook, formatters, class helper
-    pages/               # Public pages
-    test/                # Vitest setup and API mocks
+    lib/                 # API client, auth context, CSRF, formatters, helpers
+    pages/               # Public, auth and account pages
+    test/                # Vitest setup, API mocks and auth fixtures
     types/               # API response types
 ```
 
-## Public pages
+## Public and account pages
 
 | Route | Page | Notes |
 |---|---|---|
 | `/` | Home | Hero, search, popular categories, latest listings, how it works, calls to action |
 | `/marketplace` | Marketplace | Filters live in the URL: search, category, province/district/sector, price, quantity, verified, sort, page |
-| `/products/:id` | Product detail | Photos, price, quantity, location, farmer summary, login prompt |
+| `/products/:id` | Product detail | Photos, price, quantity, location, farmer summary, login gate for first contact |
 | `/farmers/:id` | Farmer profile | Name, district, verification badge, active listings; no phone or email |
 | `/how-it-works` | How It Works | Three steps for farmers and three for buyers |
 | `/about` | About Us | Problem, mission, how it works, story and team |
 | `/contact` | Contact Us | Validated form, hidden spam trap, rate-limit and error states |
 | `/privacy` | Privacy Policy | Collection, visibility, retention, choices and security |
 | `/policies` | Platform Policies | Listing rules, reports, cancellations, enforcement |
-| `/login`, `/register`, `/sell` | Coming-soon placeholders | Replaced by real flows in Step 8 |
+| `/login` | Log in | Email + password; returns to the listing in `?next=` |
+| `/register` | Register | Buyer, farmer or both, with location cascade and profile details |
+| `/forgot-password` | Forgot password | Always shows the same confirmation, no account enumeration |
+| `/reset-password` | Reset password | Reads `uid` + `token` from the email link |
+| `/verify-email` | Verify email | Confirms the address and refreshes the signed-in profile |
+| `/sell` | Sell on SARURA | Explains selling; invites a farmer account or opens the dashboard |
+| `/dashboard` | Dashboard | Protected placeholder for the Step 9 buyer/farmer dashboards |
 | `*` | Not found | Browse or go home |
 
 The contact details shown on `/contact` and `/privacy` are placeholders that
@@ -64,11 +71,36 @@ list.
 ## API access
 
 - `src/lib/api.ts` wraps `fetch`, builds query strings, parses JSON and throws a
-  typed `ApiError` with the HTTP status.
+  typed `ApiError` with the HTTP status. Writes send `X-CSRFToken`.
+- `src/lib/csrf.ts` fetches `/api/auth/csrf/` and keeps the token; it is
+  re-fetched after login, registration and logout because Django rotates it.
 - `src/lib/useApi.ts` handles loading/error state and aborts stale requests.
 - `VITE_API_BASE_URL` can override the default `/api` base.
 - Image URLs come from the backend as absolute URLs, which the `/media` dev
   proxy forwards to Django.
+
+## Accounts and authentication
+
+- `AuthProvider` (`src/lib/auth.tsx`) asks `/api/auth/me/` once on load. Its
+  status is `loading`, `authenticated` or `anonymous`, so the header and
+  protected pages never flash the wrong state. A `403` from `/me/` means signed
+  out (DRF uses `403` for an unauthenticated session).
+- `<ProtectedRoute>` sends visitors to `/login?next=…` and keeps the path and
+  query string. Only internal paths are accepted (`src/lib/redirect.ts`), so a
+  crafted link cannot redirect to another site.
+- On a product page, "contact the farmer" opens the login gate from guide
+  section 4. After login or registration the visitor returns to the same
+  listing. Signed-in visitors see a "messaging is coming" panel until the deals
+  step ships.
+- One account can be a buyer, a farmer or both. The register form offers the
+  three choices and shows farm or business fields as needed.
+- Form errors from DRF are mapped to the matching field by
+  `src/lib/apiErrors.ts`; `429` responses get a dedicated rate-limit message.
+
+## Step 8 review notes
+
+The rates, session length and remaining copy that need a founder decision are
+listed in `docs/step8-auth.md`.
 
 ## Colour palette
 
@@ -126,5 +158,9 @@ From `docs/step1-marketplace-rules.md`:
 
 `npm test` covers the header and language toggle, shared UI, the product card,
 the home page, marketplace filters and pagination state, the contact form
-(validation, payload, rate limit and server errors) and the not-found page.
-API calls are mocked with a small fetch double in `src/test/apiMock.ts`.
+(validation, payload, rate limit and server errors), the not-found page, and the
+Step 8 auth flows: login/return path, registration (single and dual role),
+forgot/reset password, email verification, protected routes, redirect safety and
+the signed-in header menu. API calls are mocked with a small fetch double in
+`src/test/apiMock.ts`; `src/test/auth.tsx` adds a signed-in user fixture and
+wraps components in `AuthProvider`.

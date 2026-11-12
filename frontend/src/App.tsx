@@ -1,17 +1,25 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
+import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { PublicLayout } from "./components/layout/PublicLayout";
+import { AuthProvider } from "./lib/auth";
 import { AboutPage } from "./pages/AboutPage";
-import { ComingSoonPage } from "./pages/ComingSoonPage";
 import { ContactPage } from "./pages/ContactPage";
+import { DashboardPage } from "./pages/DashboardPage";
 import { FarmerProfilePage } from "./pages/FarmerProfilePage";
+import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { HomePage } from "./pages/HomePage";
 import { HowItWorksPage } from "./pages/HowItWorksPage";
+import { LoginPage } from "./pages/LoginPage";
 import { MarketplacePage } from "./pages/MarketplacePage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { PoliciesPage } from "./pages/PoliciesPage";
 import { PrivacyPage } from "./pages/PrivacyPage";
 import { ProductDetailPage } from "./pages/ProductDetailPage";
+import { RegisterPage } from "./pages/RegisterPage";
+import { ResetPasswordPage } from "./pages/ResetPasswordPage";
+import { SellPage } from "./pages/SellPage";
+import { VerifyEmailPage } from "./pages/VerifyEmailPage";
 
 export function AppRoutes() {
   return (
@@ -27,29 +35,16 @@ export function AppRoutes() {
         <Route path="privacy" element={<PrivacyPage />} />
         <Route path="policies" element={<PoliciesPage />} />
 
-        {/* Accounts and selling tools arrive in Step 8; these keep the header
-            links usable until then. */}
-        <Route
-          path="login"
-          element={
-            <ComingSoonPage titleKey="comingSoon.loginTitle" bodyKey="comingSoon.loginBody" />
-          }
-        />
-        <Route
-          path="register"
-          element={
-            <ComingSoonPage
-              titleKey="comingSoon.registerTitle"
-              bodyKey="comingSoon.registerBody"
-            />
-          }
-        />
-        <Route
-          path="sell"
-          element={
-            <ComingSoonPage titleKey="comingSoon.sellTitle" bodyKey="comingSoon.sellBody" />
-          }
-        />
+        <Route path="login" element={<LoginPage />} />
+        <Route path="register" element={<RegisterPage />} />
+        <Route path="forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="reset-password" element={<ResetPasswordPage />} />
+        <Route path="verify-email" element={<VerifyEmailPage />} />
+        <Route path="sell" element={<SellPage />} />
+
+        <Route element={<ProtectedRoute />}>
+          <Route path="dashboard" element={<DashboardPage />} />
+        </Route>
 
         <Route path="*" element={<NotFoundPage />} />
       </Route>
@@ -60,7 +55,9 @@ export function AppRoutes() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AppRoutes />
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
     </BrowserRouter>
   );
 }

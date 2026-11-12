@@ -23,6 +23,11 @@ from accounts.serializers import (
     UserSerializer,
     VerifyEmailSerializer,
 )
+from accounts.throttles import (
+    LoginRateThrottle,
+    PasswordResetRateThrottle,
+    RegisterRateThrottle,
+)
 
 
 def user_from_uid(uid: str):
@@ -38,17 +43,19 @@ def user_from_uid(uid: str):
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [RegisterRateThrottle]
 
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
-        # Welcome + verification email (console backend in development).
-        send_verification_email(user)
-
         # Log the new user in straight away; the React app calls /api/auth/me/.
+        # This must happen before the email is sent: logging in updates
+        # last_login, which is part of the verification token's hash. Sending
+        # first would make the link in the welcome email invalid immediately.
         login(request, user)
+        send_verification_email(user)
 
         return Response(
             UserSerializer(user, context={"request": request}).data,
@@ -58,6 +65,7 @@ class RegisterView(APIView):
 
 class LoginView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [LoginRateThrottle]
 
     def post(self, request):
         serializer = LoginSerializer(data=request.data, context={"request": request})
@@ -95,6 +103,7 @@ class MeView(APIView):
 
 class PasswordResetRequestView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [PasswordResetRateThrottle]
 
     def post(self, request):
         serializer = PasswordResetRequestSerializer(data=request.data)
@@ -115,6 +124,7 @@ class PasswordResetRequestView(APIView):
 
 class PasswordResetConfirmView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [PasswordResetRateThrottle]
 
     def post(self, request):
         serializer = PasswordResetConfirmSerializer(data=request.data)

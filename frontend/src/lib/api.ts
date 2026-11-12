@@ -1,6 +1,7 @@
 /** Small typed wrapper around the SARURA API (same origin under /api/). */
 
-const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "/api").replace(/\/$/, "");
+import { API_BASE } from "./config";
+import { getCsrfToken } from "./csrf";
 
 export type QueryValue = string | number | boolean | null | undefined;
 
@@ -47,11 +48,15 @@ async function request<T>(
   path: string,
   init: RequestInit & { signal?: AbortSignal } = {},
 ): Promise<T> {
+  const method = (init.method ?? "GET").toUpperCase();
+  const csrfToken = method === "GET" || method === "HEAD" ? null : getCsrfToken();
+
   const response = await fetch(`${API_BASE}${path}`, {
     ...init,
     headers: {
       Accept: "application/json",
       ...(init.body ? { "Content-Type": "application/json" } : {}),
+      ...(csrfToken ? { "X-CSRFToken": csrfToken } : {}),
       ...init.headers,
     },
     credentials: "same-origin",
@@ -75,6 +80,14 @@ export function apiGet<T>(
 export function apiPost<T>(path: string, body: unknown, signal?: AbortSignal): Promise<T> {
   return request<T>(path, {
     method: "POST",
+    body: JSON.stringify(body),
+    signal,
+  });
+}
+
+export function apiPatch<T>(path: string, body: unknown, signal?: AbortSignal): Promise<T> {
+  return request<T>(path, {
+    method: "PATCH",
     body: JSON.stringify(body),
     signal,
   });

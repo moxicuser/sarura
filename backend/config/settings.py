@@ -204,6 +204,16 @@ DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "SARURA <no-reply@sarura.rw
 CONTACT_EMAIL = os.getenv("CONTACT_EMAIL", "hello@sarura.rw")
 CONTACT_RATE_LIMIT = os.getenv("CONTACT_RATE_LIMIT", "5/hour")
 
+# Authentication limits (guide section 7: stop bots and password guessing).
+# Login is generous enough for a person who mistypes a password, while repeated
+# attempts are still blocked. Registration and reset links are rarer actions.
+LOGIN_RATE_LIMIT = os.getenv("LOGIN_RATE_LIMIT", "10/min")
+REGISTER_RATE_LIMIT = os.getenv("REGISTER_RATE_LIMIT", "5/hour")
+PASSWORD_RESET_RATE_LIMIT = os.getenv("PASSWORD_RESET_RATE_LIMIT", "10/hour")
+
+# Sessions expire after two weeks by default (guide: sessions that expire).
+SESSION_COOKIE_AGE = int(os.getenv("SESSION_COOKIE_AGE", str(60 * 60 * 24 * 14)))
+
 
 # ---------------------------------------------------------------------------
 # Static and media files
@@ -233,6 +243,9 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 24,
     "DEFAULT_THROTTLE_RATES": {
         "contact": CONTACT_RATE_LIMIT,
+        "login": LOGIN_RATE_LIMIT,
+        "register": REGISTER_RATE_LIMIT,
+        "password_reset": PASSWORD_RESET_RATE_LIMIT,
     },
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",

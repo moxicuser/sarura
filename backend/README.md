@@ -81,8 +81,33 @@ point at `FRONTEND_URL` (default `http://localhost:5173`).
 
 Session-authenticated writes (PATCH/POST/DELETE) need the `X-CSRFToken` header.
 Fetch `GET /api/auth/csrf/` first, and re-fetch it after login/logout because
-Django rotates the token then. Registration and login are public POSTs and do
-not need a token.
+Django rotates the token then. Registration and login do not need a token for
+anonymous visitors; DRF still checks it when an existing session is signed in,
+and the React client always sends it.
+
+### Rate limits and sessions
+
+Authentication endpoints are limited per client IP. The defaults, all
+configurable through `.env`, are:
+
+| Setting | Default | Applies to |
+|---|---|---|
+| `LOGIN_RATE_LIMIT` | `10/min` | `login/` |
+| `REGISTER_RATE_LIMIT` | `5/hour` | `register/` |
+| `PASSWORD_RESET_RATE_LIMIT` | `10/hour` | `password-reset/` and its confirm endpoint |
+| `SESSION_COOKIE_AGE` | 14 days (1209600 s) | All sessions |
+
+Going over a limit returns `429` with a DRF `detail` message. The throttle
+counts both anonymous and signed-in requests for these endpoints.
+
+Verification emails are sent after the new user is logged in. The verification
+token hashes `last_login`, so sending it first (before `login()`) would produce
+a link that is already invalid when the welcome email arrives; a regression test
+covers this.
+
+In development, a verification or reset link can be copied from the console
+output. Tokens expire after Django's `PASSWORD_RESET_TIMEOUT` (3 days by
+default).
 
 ## Locations API (`/api/locations/`)
 

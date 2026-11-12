@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, NavLink } from "react-router-dom";
 
+import { useAuth } from "../../lib/auth";
 import { buttonStyles } from "../ui";
 import { LanguageToggle } from "./LanguageToggle";
 
@@ -11,7 +12,7 @@ const mainLinks = [
   { to: "/sell", labelKey: "nav.sell" },
 ] as const;
 
-const menuLinks = [
+const publicMenuLinks = [
   { to: "/", labelKey: "nav.home" },
   ...mainLinks,
   { to: "/about", labelKey: "nav.about" },
@@ -22,8 +23,18 @@ const menuLinks = [
 
 export function Header() {
   const { t } = useTranslation();
+  const { user, status, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  const signedIn = status === "authenticated" && user !== null;
+  const menuLinks = signedIn
+    ? [
+        { to: "/", labelKey: "nav.home" },
+        { to: "/dashboard", labelKey: "nav.dashboard" },
+        ...publicMenuLinks.slice(1),
+      ]
+    : publicMenuLinks;
 
   useEffect(() => {
     if (!menuOpen) {
@@ -48,6 +59,11 @@ export function Header() {
   }, [menuOpen]);
 
   const closeMenu = () => setMenuOpen(false);
+
+  const onLogout = async () => {
+    closeMenu();
+    await logout();
+  };
 
   return (
     <>
@@ -87,18 +103,52 @@ export function Header() {
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
             <LanguageToggle />
             <span aria-hidden="true" className="hidden h-6 w-px bg-sarura-border sm:block" />
-            <Link
-              to="/login"
-              className="whitespace-nowrap rounded-lg px-2 py-2 text-sm font-semibold text-sarura-gray transition-colors hover:text-sarura-green-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sarura-green"
-            >
-              {t("nav.login")}
-            </Link>
-            <Link
-              to="/register"
-              className={buttonStyles({ size: "sm", className: "hidden sm:inline-flex" })}
-            >
-              {t("nav.register")}
-            </Link>
+
+            {status === "loading" && (
+              <span className="sr-only" role="status">
+                {t("common.loading")}
+              </span>
+            )}
+
+            {signedIn && (
+              <>
+                <Link
+                  to="/dashboard"
+                  className="whitespace-nowrap rounded-lg px-2 py-2 text-sm font-semibold text-sarura-green-dark transition-colors hover:text-sarura-green focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sarura-green"
+                >
+                  {t("nav.dashboard")}
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => void onLogout()}
+                  className={buttonStyles({
+                    variant: "secondary",
+                    size: "sm",
+                    className: "hidden sm:inline-flex",
+                  })}
+                >
+                  {t("nav.logout")}
+                </button>
+              </>
+            )}
+
+            {status === "anonymous" && (
+              <>
+                <Link
+                  to="/login"
+                  className="whitespace-nowrap rounded-lg px-2 py-2 text-sm font-semibold text-sarura-gray transition-colors hover:text-sarura-green-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sarura-green"
+                >
+                  {t("nav.login")}
+                </Link>
+                <Link
+                  to="/register"
+                  className={buttonStyles({ size: "sm", className: "hidden sm:inline-flex" })}
+                >
+                  {t("nav.register")}
+                </Link>
+              </>
+            )}
+
             <button
               type="button"
               aria-label={t("common.openMenu")}
@@ -141,6 +191,13 @@ export function Header() {
               </button>
             </div>
 
+            {signedIn && (
+              <div className="border-b border-sarura-border px-5 py-4">
+                <p className="text-sm font-bold text-sarura-ink">{user.full_name}</p>
+                <p className="mt-1 text-xs text-sarura-gray">{user.email}</p>
+              </div>
+            )}
+
             <nav aria-label={t("common.menuTitle")} className="flex-1 overflow-y-auto px-3 py-4">
               {menuLinks.map((link) => (
                 <NavLink
@@ -165,20 +222,33 @@ export function Header() {
                 <span>{t("common.language")}</span>
                 <LanguageToggle />
               </div>
-              <Link
-                to="/login"
-                onClick={closeMenu}
-                className={buttonStyles({ variant: "secondary", fullWidth: true })}
-              >
-                {t("nav.login")}
-              </Link>
-              <Link
-                to="/register"
-                onClick={closeMenu}
-                className={buttonStyles({ fullWidth: true })}
-              >
-                {t("nav.register")}
-              </Link>
+
+              {signedIn ? (
+                <button
+                  type="button"
+                  onClick={() => void onLogout()}
+                  className={buttonStyles({ variant: "secondary", fullWidth: true })}
+                >
+                  {t("nav.logout")}
+                </button>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    onClick={closeMenu}
+                    className={buttonStyles({ variant: "secondary", fullWidth: true })}
+                  >
+                    {t("nav.login")}
+                  </Link>
+                  <Link
+                    to="/register"
+                    onClick={closeMenu}
+                    className={buttonStyles({ fullWidth: true })}
+                  >
+                    {t("nav.register")}
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
