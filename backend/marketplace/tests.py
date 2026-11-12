@@ -3,11 +3,13 @@
 import os
 import shutil
 import tempfile
+from datetime import timedelta
 from io import BytesIO
 
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
+from django.utils import timezone
 from PIL import Image
 from rest_framework.test import APIClient
 
@@ -509,3 +511,277 @@ class PublicFarmerProfileTests(MarketplaceTestBase):
 
         self.assertTrue(response.data["is_verified_farmer"])
         self.assertEqual(response.data["verification_label"], "Identity reviewed")
+
+
+class ProductSearchFilterTests(MarketplaceTestBase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.northern = Province.objects.create(name="Northern", name_rw="Amajyaruguru")
+        cls.musanze = District.objects.create(province=cls.northern, name="Musanze")
+        cls.muhoza = Sector.objects.create(district=cls.musanze, name="Muhoza")
+        cls.fruits = Category.objects.get(name="Fruits")
+
+    def setUp(self):
+        self.client = APIClient()
+        self.farmer = self.make_farmer()
+        self.identity_farmer = self.make_farmer(
+            email="identity@example.com",
+            phone="0788333001",
+            verification_level=User.VerificationLevel.IDENTITY,
+        )
+        self.cooperative_farmer = self.make_farmer(
+            email="coop@example.com",
+            phone="0788333002",
+            verification_level=User.VerificationLevel.COOPERATIVE,
+        )
+        self.account_farmer = self.make_farmer(
+            email="account@example.com",
+            phone="0788333003",
+            verification_level=User.VerificationLevel.ACCOUNT,
+        )
+
+        self.potato = self.make_product(self.farmer)
+        self.maize = self.make_product(
+            self.farmer,
+            crop_name="Maize",
+            category=self.grains,
+            quantity=1000,
+            price_per_unit="250.00",
+        )
+        self.beans = self.make_product(
+            self.identity_farmer,
+            crop_name="Beans",
+            category=self.grains,
+            quantity=100,
+            price_per_unit="900.00",
+            district=self.kicukiro,
+            sector=self.gikondo,
+        )
+        self.carrots = self.make_product(
+            self.cooperative_farmer,
+            crop_name="Carrots",
+            quantity=800,
+            price_per_unit="500.00",
+            district=self.musanze,
+            sector=self.muhoza,
+        )
+        self.mango = self.make_product(
+            self.account_farmer,
+            crop_name="Mango",
+            category=self.fruits,
+            quantity=600,
+            price_per_unit="300.00",
+        )
+        self.make_product(
+            self.farmer,
+            crop_name="Hidden potatoes",
+            price_per_unit="100.00",
+            status=Product.Status.HIDDEN,
+        )
+
+    def listing_names(self, response):
+        self.assertEqual(response.status_code, 200, response.data)
+        return [item["crop_name"] for item in response.data["results"]]
+
+    def listing_ids(self, response):
+        self.assertEqual(response.status_code, 200, response.data)
+        return [item["id"] for item in response.data["results"]]
+
+    def test_search_is_partial_and_case_insensitive(self):
+        self.assertEqual(self.listing_names(self.client.get("/api/products/?search=potat")), ["Irish potato"])
+        self.assertEqual(self.listing_names(self.client.get("/api/products/?q=MAIZE")), ["Maize"])
+
+    def test_blank_search_is_ignored(self):
+        self.assertEqual(len(self.listing_names(self.client.get("/api/products/?search=+++"))), 5)
+
+    def test_filter_by_category(self):
+        names = self.listing_names(self.client.get(f"/api/products/?category={self.vegetables.id}"))
+
+        self.assertEqual(set(names), {"Irish potato", "Carrots"})
+
+    def test_filter_by_province_district_and_sector(self):
+        kigali = self.listing_names(self.client.get(f"/api/products/?province={self.kigali.id}"))
+        self.assertEqual(set(kigali), {"Irish potato", "Maize", "Beans", "Mango"})
+
+        district = self.listing_names(
+            self.client.get(f"/api/products/?district={self.kicukiro.id}")
+        )
+        self.assertEqual(district, ["Beans"])
+
+        sector = self.listing_names(self.client.get(f"/api/products/?sector={self.gikondo.id}"))
+        self.assertEqual(sector, ["Beans"])
+
+    def test_filter_by_price_range_and_minimum_quantity(self):
+        priced = self.listing_names(
+            self.client.get("/api/products/?min_price=300&max_price=500")
+        )
+        self.assertEqual(set(priced), {"Irish potato", "Carrots", "Mango"})
+
+        quantities = self.listing_names(self.client.get("/api/products/?min_quantity=800"))
+        self.assertEqual(set(quantities), {"Maize", "Carrots"})
+
+    def test_verified_filter_uses_identity_or_cooperative_levels(self):
+        names = self.listing_names(self.client.get("/api/products/?verified=true"))
+
+        self.assertEqual(set(names), {"Beans", "Carrots"})
+        self.assertNotIn("Mango", names)  # Account verified (email only) is not enough.
+
+        account_only = self.listing_names(self.client.get("/api/products/?verified=false"))
+        self.assertIn("Mango", account_only)
+
+    def test_filters_can_be_combined(self):
+        query = (
+            f"/api/products/?category={self.vegetables.id}"
+            f"&district={self.gasabo.id}&max_price=400&min_quantity=100&verified=false"
+        )
+
+        self.assertEqual(self.listing_names(self.client.get(query)), ["Irish potato"])
+
+    def test_hidden_listings_never_appear_in_filtered_results(self):
+        names = self.listing_names(self.client.get("/api/products/?search=potato"))
+
+        self.assertEqual(names, ["Irish potato"])
+
+    def test_invalid_query_parameters_return_400(self):
+        for query, field in [
+            ("sort=cheapest", "sort"),
+            ("min_price=500&max_price=100", "max_price"),
+            ("min_price=abc", "min_price"),
+            ("min_quantity=-1", "min_quantity"),
+            ("verified=maybe", "verified"),
+            ("category=999999", "category"),
+            ("province=999999", "province"),
+            ("district=999999", "district"),
+            ("sector=999999", "sector"),
+            ("near=999999", "near"),
+        ]:
+            response = self.client.get(f"/api/products/?{query}")
+            self.assertEqual(response.status_code, 400, query)
+            self.assertIn(field, response.data, query)
+
+
+class ProductSortTests(MarketplaceTestBase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.northern = Province.objects.create(name="Northern", name_rw="Amajyaruguru")
+        cls.musanze = District.objects.create(province=cls.northern, name="Musanze")
+        cls.muhoza = Sector.objects.create(district=cls.musanze, name="Muhoza")
+
+    def setUp(self):
+        self.client = APIClient()
+        self.farmer = self.make_farmer()
+        self.potato = self.make_product(self.farmer, price_per_unit="380.00")
+        self.maize = self.make_product(
+            self.farmer, crop_name="Maize", category=self.grains, price_per_unit="250.00"
+        )
+        self.beans = self.make_product(
+            self.farmer,
+            crop_name="Beans",
+            category=self.grains,
+            price_per_unit="900.00",
+            district=self.kicukiro,
+            sector=self.gikondo,
+        )
+        self.carrots = self.make_product(
+            self.farmer,
+            crop_name="Carrots",
+            price_per_unit="500.00",
+            district=self.musanze,
+            sector=self.muhoza,
+        )
+        self.mango = self.make_product(
+            self.farmer,
+            crop_name="Mango",
+            category=Category.objects.get(name="Fruits"),
+            price_per_unit="300.00",
+        )
+
+        now = timezone.now()
+        for product, minutes in [
+            (self.potato, 50),
+            (self.maize, 40),
+            (self.beans, 30),
+            (self.carrots, 20),
+            (self.mango, 10),
+        ]:
+            Product.objects.filter(pk=product.pk).update(
+                created_at=now - timedelta(minutes=minutes)
+            )
+
+    def names(self, query=""):
+        response = self.client.get(f"/api/products/{query}")
+        self.assertEqual(response.status_code, 200, response.data)
+        return [item["crop_name"] for item in response.data["results"]]
+
+    def test_newest_is_the_default_sort(self):
+        expected = ["Mango", "Carrots", "Beans", "Maize", "Irish potato"]
+        self.assertEqual(self.names(), expected)
+        self.assertEqual(self.names("?sort=newest"), expected)
+
+    def test_sort_by_lowest_price(self):
+        self.assertEqual(
+            self.names("?sort=price"),
+            ["Maize", "Mango", "Irish potato", "Carrots", "Beans"],
+        )
+
+    def test_nearest_groups_same_district_then_province_then_rest(self):
+        self.assertEqual(
+            self.names(f"?sort=nearest&near={self.gasabo.id}"),
+            ["Mango", "Maize", "Irish potato", "Beans", "Carrots"],
+        )
+
+    def test_nearest_uses_logged_in_users_district_when_near_is_absent(self):
+        buyer = self.make_buyer()
+        self.client.force_login(buyer)
+
+        self.assertEqual(
+            self.names("?sort=nearest"),
+            ["Mango", "Maize", "Irish potato", "Beans", "Carrots"],
+        )
+
+    def test_nearest_falls_back_to_newest_without_a_location(self):
+        self.assertEqual(self.names("?sort=nearest"), self.names("?sort=newest"))
+
+        no_location = self.make_buyer(
+            email="nolocation@example.com",
+            phone="0788444000",
+            district=None,
+            sector=None,
+            province=None,
+        )
+        self.client.force_login(no_location)
+        self.assertEqual(self.names("?sort=nearest"), self.names("?sort=newest"))
+
+    def test_nearest_from_another_province(self):
+        self.assertEqual(
+            self.names(f"?sort=nearest&near={self.musanze.id}"),
+            ["Carrots", "Mango", "Beans", "Maize", "Irish potato"],
+        )
+
+
+class ProductPaginationTests(MarketplaceTestBase):
+    def setUp(self):
+        self.client = APIClient()
+        self.farmer = self.make_farmer()
+
+    def test_twenty_five_active_listings_are_split_into_twenty_four_and_one(self):
+        for index in range(25):
+            self.make_product(self.farmer, crop_name=f"Crop {index:02d}")
+        self.make_product(self.farmer, crop_name="Sold crop", status=Product.Status.SOLD)
+
+        first = self.client.get("/api/products/")
+        second = self.client.get("/api/products/?page=2")
+
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(first.data["count"], 25)
+        self.assertEqual(len(first.data["results"]), 24)
+        self.assertIsNotNone(first.data["next"])
+        self.assertEqual(second.status_code, 200)
+        self.assertEqual(second.data["count"], 25)
+        self.assertEqual(len(second.data["results"]), 1)
+        self.assertIsNone(second.data["next"])
+
+    def test_page_out_of_range_returns_404(self):
+        self.assertEqual(self.client.get("/api/products/?page=99").status_code, 404)

@@ -16,6 +16,7 @@ urlpatterns = [
     path(settings.ADMIN_URL, admin.site.urls),
     path("api/health/", health_check, name="health-check"),
     path("api/auth/", include("accounts.urls")),
+    path("api/", include("core.urls")),
     path("api/", include("marketplace.urls")),
 ]
 

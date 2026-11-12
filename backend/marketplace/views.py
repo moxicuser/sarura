@@ -1,6 +1,6 @@
 """Marketplace API: public browsing, farmer listing management and photos."""
 
-from django.db.models import Count, Q
+from django.db.models import Case, Count, IntegerField, Q, Value, When
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
@@ -12,8 +12,11 @@ from accounts.models import User
 from accounts.permissions import IsFarmer, IsOwner
 from marketplace.models import MAX_PHOTOS, Category, Product, ProductImage
 from marketplace.serializers import (
+    SORT_NEAREST,
+    SORT_PRICE,
     CategorySerializer,
     ProductDetailSerializer,
+    ProductFilterSerializer,
     ProductImageSerializer,
     ProductListSerializer,
     ProductWriteSerializer,
@@ -45,7 +48,9 @@ class CategoryListView(generics.ListAPIView):
 class ProductListView(generics.ListCreateAPIView):
     """Public list of active listings + farmer-only creation.
 
-    Search and filters arrive in Step 5.
+    Query parameters (all optional): `search` or `q`, `category`, `province`,
+    `district`, `sector`, `min_price`, `max_price`, `min_quantity`, `verified`,
+    `sort` (`newest`, `price`, `nearest`) and `near` (district id).
     """
 
     def get_permissions(self):
@@ -59,7 +64,56 @@ class ProductListView(generics.ListCreateAPIView):
         return ProductListSerializer
 
     def get_queryset(self):
-        return product_queryset().filter(status=Product.Status.ACTIVE)
+        queryset = product_queryset().filter(status=Product.Status.ACTIVE)
+
+        filters = ProductFilterSerializer(data=self.request.query_params)
+        filters.is_valid(raise_exception=True)
+        params = filters.validated_data
+
+        search = params.get("search")
+        if search:
+            queryset = queryset.filter(crop_name__icontains=search)
+        if params.get("category"):
+            queryset = queryset.filter(category=params["category"])
+        if params.get("province"):
+            queryset = queryset.filter(district__province=params["province"])
+        if params.get("district"):
+            queryset = queryset.filter(district=params["district"])
+        if params.get("sector"):
+            queryset = queryset.filter(sector=params["sector"])
+        if params.get("min_price") is not None:
+            queryset = queryset.filter(price_per_unit__gte=params["min_price"])
+        if params.get("max_price") is not None:
+            queryset = queryset.filter(price_per_unit__lte=params["max_price"])
+        if params.get("min_quantity") is not None:
+            queryset = queryset.filter(quantity__gte=params["min_quantity"])
+        if params.get("verified"):
+            queryset = queryset.filter(
+                farmer__verification_level__in=[
+                    User.VerificationLevel.IDENTITY,
+                    User.VerificationLevel.COOPERATIVE,
+                ]
+            )
+
+        if params["sort"] == SORT_PRICE:
+            return queryset.order_by("price_per_unit", "-created_at", "-id")
+
+        if params["sort"] == SORT_NEAREST:
+            near = params.get("near")
+            if near is None and self.request.user.is_authenticated:
+                near = self.request.user.district
+            if near is not None:
+                # No coordinates yet: same district, then same province, then rest.
+                return queryset.annotate(
+                    distance_tier=Case(
+                        When(district_id=near.id, then=Value(0)),
+                        When(district__province_id=near.province_id, then=Value(1)),
+                        default=Value(2),
+                        output_field=IntegerField(),
+                    )
+                ).order_by("distance_tier", "-created_at", "-id")
+
+        return queryset.order_by("-created_at", "-id")
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

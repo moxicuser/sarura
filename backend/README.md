@@ -84,12 +84,26 @@ Fetch `GET /api/auth/csrf/` first, and re-fetch it after login/logout because
 Django rotates the token then. Registration and login are public POSTs and do
 not need a token.
 
+## Locations API (`/api/locations/`)
+
+Public, unpaginated reference data for the province → district → sector
+cascade:
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `provinces/` | All 5 provinces |
+| GET | `districts/?province={id}` | Districts, optionally narrowed to one province |
+| GET | `sectors/?district={id}` | Sectors for one district (a district is required; names repeat) |
+
+Invalid ids or a missing `district` return `400`. Cell is free text on the user
+profile because the sector is the marketplace's working area.
+
 ## Marketplace API (`/api/`)
 
 | Method | Path | Auth | Purpose |
 |---|---|---|---|
 | GET | `categories/` | public | Fixed category list (Vegetables, Fruits, Grains, Tubers, Other) |
-| GET | `products/` | public | Active listings, 24 per page |
+| GET | `products/` | public | Active listings, 24 per page, searchable/filterable (see below) |
 | POST | `products/` | farmer | Create a listing (owner is set from the session) |
 | GET | `products/{id}/` | public | Listing detail; owners can preview their sold/hidden ones |
 | PATCH | `products/{id}/` | owner | Edit listing, mark sold or hidden |
@@ -98,6 +112,23 @@ not need a token.
 | POST | `products/{id}/images/` | owner | Upload a photo (multipart: `image`, optional `alt_text`, `position`) |
 | PATCH/DELETE | `products/{id}/images/{image_id}/` | owner | Change alt text/position, or remove a photo |
 | GET | `farmers/{id}/` | public | Public farmer profile: name, district, badge, active listings |
+
+`GET /api/products/` accepts these optional query parameters:
+
+| Parameter | Meaning |
+|---|---|
+| `search` or `q` | Partial, case-insensitive crop name search |
+| `category`, `province`, `district`, `sector` | Ids from the reference data |
+| `min_price`, `max_price` | RWF/kg range |
+| `min_quantity` | Minimum available kg |
+| `verified` | `true` = identity-reviewed or cooperative-verified farmers only |
+| `sort` | `newest` (default), `price` (lowest first), `nearest` |
+| `near` | District id for `sort=nearest`; defaults to the logged-in user's district |
+
+Invalid values return `400`. Results always contain active listings only.
+Nearest sorting currently approximates distance with tiers — same district,
+same province, then everywhere else — because listings have no coordinates yet
+`[review]`; without a location it falls back to newest.
 
 Listing rules (from `docs/step1-marketplace-rules.md`):
 

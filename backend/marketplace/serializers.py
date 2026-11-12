@@ -1,12 +1,13 @@
 """Serializers for categories, listings, photos and public farmer profiles."""
 
 import re
+from decimal import Decimal
 
 from django.core.validators import FileExtensionValidator
 from rest_framework import serializers
 
 from accounts.models import User
-from core.models import District, Sector
+from core.models import District, Province, Sector
 from marketplace.models import (
     MAX_PHOTOS,
     MAX_PRICE,
@@ -17,6 +18,15 @@ from marketplace.models import (
     ProductImage,
 )
 from marketplace.validators import validate_image_format, validate_image_size
+
+SORT_NEWEST = "newest"
+SORT_PRICE = "price"
+SORT_NEAREST = "nearest"
+PRODUCT_SORT_CHOICES = [
+    (SORT_NEWEST, "Newest first"),
+    (SORT_PRICE, "Lowest price"),
+    (SORT_NEAREST, "Nearest district"),
+]
 
 EMAIL_RE = re.compile(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}")
 PHONE_RE = re.compile(r"(?:\+?250|0)7[2389]\d{7}")
@@ -36,6 +46,72 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ["id", "name", "name_rw"]
+
+
+class ProductFilterSerializer(serializers.Serializer):
+    """Validate public marketplace query parameters.
+
+    `search` and `q` are aliases (the home page search box can use either).
+    `near` is a district id: with `sort=nearest`, listings are grouped into
+    same district, same province, then everywhere else. Without `near`,
+    authenticated users are compared with their own district.
+    """
+
+    search = serializers.CharField(
+        required=False, allow_blank=True, max_length=60, trim_whitespace=True
+    )
+    q = serializers.CharField(
+        required=False, allow_blank=True, max_length=60, trim_whitespace=True
+    )
+    category = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(), required=False
+    )
+    province = serializers.PrimaryKeyRelatedField(
+        queryset=Province.objects.all(), required=False
+    )
+    district = serializers.PrimaryKeyRelatedField(
+        queryset=District.objects.all(), required=False
+    )
+    sector = serializers.PrimaryKeyRelatedField(
+        queryset=Sector.objects.all(), required=False
+    )
+    min_price = serializers.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        min_value=Decimal("0"),
+        max_value=Decimal(str(MAX_PRICE)),
+        required=False,
+    )
+    max_price = serializers.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        min_value=Decimal("0"),
+        max_value=Decimal(str(MAX_PRICE)),
+        required=False,
+    )
+    min_quantity = serializers.IntegerField(
+        min_value=0, max_value=MAX_QUANTITY, required=False
+    )
+    verified = serializers.BooleanField(required=False, default=False)
+    sort = serializers.ChoiceField(
+        choices=PRODUCT_SORT_CHOICES, required=False, default=SORT_NEWEST
+    )
+    near = serializers.PrimaryKeyRelatedField(
+        queryset=District.objects.all(), required=False
+    )
+
+    def validate(self, attrs):
+        min_price = attrs.get("min_price")
+        max_price = attrs.get("max_price")
+        if min_price is not None and max_price is not None and min_price > max_price:
+            raise serializers.ValidationError(
+                {"max_price": "Maximum price must be greater than or equal to minimum price."}
+            )
+
+        if not attrs.get("search") and attrs.get("q"):
+            attrs["search"] = attrs["q"]
+        attrs.pop("q", None)
+        return attrs
 
 
 class PublicFarmerSummarySerializer(serializers.ModelSerializer):
