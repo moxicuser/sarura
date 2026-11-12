@@ -84,6 +84,32 @@ Fetch `GET /api/auth/csrf/` first, and re-fetch it after login/logout because
 Django rotates the token then. Registration and login are public POSTs and do
 not need a token.
 
+## Marketplace API (`/api/`)
+
+| Method | Path | Auth | Purpose |
+|---|---|---|---|
+| GET | `categories/` | public | Fixed category list (Vegetables, Fruits, Grains, Tubers, Other) |
+| GET | `products/` | public | Active listings, 24 per page |
+| POST | `products/` | farmer | Create a listing (owner is set from the session) |
+| GET | `products/{id}/` | public | Listing detail; owners can preview their sold/hidden ones |
+| PATCH | `products/{id}/` | owner | Edit listing, mark sold or hidden |
+| DELETE | `products/{id}/` | owner | Archive the listing (sets status `hidden`, never deletes rows) |
+| GET | `products/mine/` | farmer | All of your listings, including sold and hidden |
+| POST | `products/{id}/images/` | owner | Upload a photo (multipart: `image`, optional `alt_text`, `position`) |
+| PATCH/DELETE | `products/{id}/images/{image_id}/` | owner | Change alt text/position, or remove a photo |
+| GET | `farmers/{id}/` | public | Public farmer profile: name, district, badge, active listings |
+
+Listing rules (from `docs/step1-marketplace-rules.md`):
+
+- Active listings hold 1 – 1,000,000 kg; price is 50 – 100,000 RWF/kg.
+  A listing at 0 kg must be marked `sold`.
+- Phone numbers and email addresses in the crop name or description are
+  rejected; first contact happens through SARURA chat.
+- 0 – 5 photos per listing. JPG, PNG and WebP only, 1 MB maximum each. The server
+  checks the file header (not just the extension), renames every file and stores
+  it under `media/products/`. Alt text falls back to the crop name.
+- Public farmer profiles never expose email, phone, sector or cell.
+
 ## Notes
 
 - Secrets live only in `.env` (git-ignored). `.env.example` documents every key.
