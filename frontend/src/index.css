@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-sarura-page font-sans text-sarura-ink antialiased;
+  }
+
+  ::selection {
+    @apply bg-sarura-green-light text-sarura-green-dark;
+  }
+}
+
+@layer components {
+  .sarura-container {
+    @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
+  }
+}
