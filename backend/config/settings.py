@@ -126,6 +126,14 @@ DATABASES = {
 # Authentication
 # ---------------------------------------------------------------------------
 
+# The custom user model (email login, dual buyer/farmer roles) must be set
+# before the first app migration (guide Step 3).
+AUTH_USER_MODEL = "accounts.User"
+
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+]
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -169,6 +177,28 @@ TIME_ZONE = "Africa/Kigali"
 USE_I18N = True
 USE_TZ = True
 LOCALE_PATHS = [BASE_DIR / "locale"]
+
+
+# ---------------------------------------------------------------------------
+# Sessions, CSRF and email
+# ---------------------------------------------------------------------------
+# The React app runs on FRONTEND_URL during development. Session cookies are
+# SameSite=Lax so they work for same-site requests; production on separate
+# domains will use HTTPS + SameSite=None (set through the environment later).
+
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SAMESITE = "Lax"
+# The React app reads the CSRF token from /api/auth/csrf/ and sends it back in
+# the X-CSRFToken header, so the cookie itself stays script-readable.
+CSRF_COOKIE_HTTPONLY = False
+
+EMAIL_BACKEND = os.getenv(
+    "DJANGO_EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
+)
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "SARURA <no-reply@sarura.rw>")
 
 
 # ---------------------------------------------------------------------------
