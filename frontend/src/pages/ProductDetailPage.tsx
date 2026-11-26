@@ -4,7 +4,16 @@ import { Link, useParams } from "react-router-dom";
 
 import { FormAlert } from "../components/auth/FormAlert";
 import { LoginGate } from "../components/auth/LoginGate";
-import { Button, ErrorState, LoadingState, VerifiedBadge, buttonStyles } from "../components/ui";
+import {
+  Button,
+  ErrorState,
+  LoadingState,
+  StatusPill,
+  TextField,
+  TextareaField,
+  VerifiedBadge,
+  buttonStyles,
+} from "../components/ui";
 import { normalizeLanguage } from "../i18n";
 import { apiDelete, apiGet, apiPost } from "../lib/api";
 import { useAuth } from "../lib/auth";
@@ -16,7 +25,7 @@ import {
   localizedName,
 } from "../lib/format";
 import { useApi } from "../lib/useApi";
-import type { ProductDetail, SavedProduct } from "../types/api";
+import type { Paginated, ProductDetail, PurchaseRequest, SavedProduct } from "../types/api";
 import { NotFoundPage } from "./NotFoundPage";
 
 export function ProductDetailPage() {
@@ -37,13 +46,68 @@ export function ProductDetailPage() {
     [productId],
   );
 
+  const signedInBuyer = status === "authenticated" && Boolean(user?.is_buyer);
+  const requests = useApi<Paginated<PurchaseRequest>>(
+    (signal) =>
+      signedInBuyer
+        ? apiGet<Paginated<PurchaseRequest>>(
+            "/deals/requests/",
+            { product: productId },
+            signal,
+          )
+        : Promise.resolve({ count: 0, next: null, previous: null, results: [] }),
+    [productId, signedInBuyer, user?.id],
+  );
+
+  const [requestQuantity, setRequestQuantity] = useState("1");
+  const [requestPrice, setRequestPrice] = useState("");
+  const [requestMessage, setRequestMessage] = useState("");
+  const [requestBusy, setRequestBusy] = useState(false);
+  const [requestError, setRequestError] = useState<string | null>(null);
+  const [sentRequestId, setSentRequestId] = useState<number | null>(null);
+
   useEffect(() => {
     setActiveImage(0);
     setSaved(Boolean(product.data?.is_saved));
     setSavedId(product.data?.saved_product_id ?? null);
-  }, [product.data?.id, product.data?.is_saved, product.data?.saved_product_id]);
+    setRequestQuantity(String(product.data?.quantity ?? 1));
+    setRequestPrice(product.data?.price_per_unit ?? "");
+    setSentRequestId(null);
+  }, [product.data?.id, product.data?.is_saved, product.data?.price_per_unit, product.data?.quantity, product.data?.saved_product_id]);
 
-  const canSave = status === "authenticated" && Boolean(user?.is_buyer);
+  const canSave = signedInBuyer;
+  const activeRequest = requests.data?.results.find((item) =>
+    ["pending", "negotiating"].includes(item.status),
+  );
+  const isOwnListing =
+    status === "authenticated" && Boolean(user && product.data?.farmer.id === user.id);
+  const canRequest =
+    signedInBuyer &&
+    !isOwnListing &&
+    product.data?.status === "active" &&
+    !activeRequest;
+
+  const submitRequest = async () => {
+    if (!product.data || !canRequest) {
+      return;
+    }
+    setRequestBusy(true);
+    setRequestError(null);
+    try {
+      const result = await apiPost<PurchaseRequest>("/deals/requests/", {
+        product: product.data.id,
+        quantity: Number(requestQuantity),
+        offered_price: requestPrice,
+        message: requestMessage,
+      });
+      setSentRequestId(result.id);
+      requests.reload();
+    } catch {
+      setRequestError(t("product.requestFailed"));
+    } finally {
+      setRequestBusy(false);
+    }
+  };
 
   const toggleSaved = async () => {
     if (!canSave || !product.data) {
@@ -249,7 +313,91 @@ export function ProductDetailPage() {
             </div>
           )}
 
-          {status === "authenticated" ? (
+          {sentRequestId ? (
+            <div className="mt-4 rounded-xl border border-sarura-green/40 bg-sarura-green-light p-4">
+              <StatusPill tone="success">{t("product.requestSuccess")}</StatusPill>
+              <div className="mt-3">
+                <Link
+                  to={`/dashboard/requests/${sentRequestId}`}
+                  className="text-sm font-bold text-sarura-green-dark hover:underline"
+                >
+                  {t("product.requestView")}
+                </Link>
+              </div>
+            </div>
+          ) : activeRequest ? (
+            <div className="mt-4 rounded-xl border border-sarura-amber/40 bg-white p-4">
+              <StatusPill tone="pending">{t(`status.${activeRequest.status}`)}</StatusPill>
+              <p className="mt-3 text-sm leading-relaxed text-sarura-gray">
+                {t("product.requestExisting")}
+              </p>
+              <Link
+                to={`/dashboard/requests/${activeRequest.id}`}
+                className="mt-2 inline-block text-sm font-bold text-sarura-green-dark hover:underline"
+              >
+                {t("product.requestView")}
+              </Link>
+            </div>
+          ) : status === "authenticated" && isOwnListing ? (
+            <div className="mt-4 rounded-xl border border-sarura-border bg-white p-4">
+              <p className="text-sm font-semibold text-sarura-ink">
+                {t("product.requestOwnListing")}
+              </p>
+            </div>
+          ) : status === "authenticated" && canRequest ? (
+            <form
+              className="mt-4 rounded-xl border border-sarura-green/40 bg-white p-4"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void submitRequest();
+              }}
+            >
+              <h2 className="text-lg font-bold text-sarura-ink">
+                {t("product.requestTitle")}
+              </h2>
+              <p className="mt-1 text-sm leading-relaxed text-sarura-gray">
+                {t("product.requestIntro")}
+              </p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <TextField
+                  label={t("product.requestQuantity")}
+                  type="number"
+                  min={1}
+                  max={data.quantity}
+                  step={1}
+                  required
+                  value={requestQuantity}
+                  onChange={(event) => setRequestQuantity(event.target.value)}
+                />
+                <TextField
+                  label={t("product.requestPrice")}
+                  type="number"
+                  min={50}
+                  max={100000}
+                  step="0.01"
+                  required
+                  value={requestPrice}
+                  onChange={(event) => setRequestPrice(event.target.value)}
+                />
+              </div>
+              <div className="mt-3">
+                <TextareaField
+                  label={t("product.requestMessage")}
+                  maxLength={1000}
+                  value={requestMessage}
+                  onChange={(event) => setRequestMessage(event.target.value)}
+                />
+              </div>
+              {requestError && (
+                <div className="mt-3">
+                  <FormAlert message={requestError} />
+                </div>
+              )}
+              <Button type="submit" fullWidth className="mt-4" disabled={requestBusy}>
+                {requestBusy ? t("product.requestWorking") : t("product.requestSubmit")}
+              </Button>
+            </form>
+          ) : status === "authenticated" ? (
             <div className="mt-4 rounded-xl border border-sarura-green/40 bg-sarura-green-light p-4">
               <p className="text-sm font-bold text-sarura-green-dark">
                 {t("product.contactReadyTitle")}

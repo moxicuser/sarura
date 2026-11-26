@@ -200,3 +200,129 @@ export type ProfileUpdatePayload = {
   farmer_profile?: Partial<FarmerProfileDetails>;
   buyer_profile?: Partial<BuyerProfileDetails>;
 };
+
+/** Step 10: purchase requests, offers and confirmed orders. */
+
+export type DealParty = {
+  id: number;
+  display_name: string;
+};
+
+export type DealProduct = {
+  id: number;
+  crop_name: string;
+  quantity: number;
+  price_per_unit: string;
+  district_name: string;
+  status: ProductListItem["status"];
+};
+
+export type RequestStatus =
+  | "pending"
+  | "negotiating"
+  | "accepted"
+  | "rejected"
+  | "cancelled"
+  | "expired";
+
+export type OfferStatus =
+  | "pending"
+  | "accepted"
+  | "rejected"
+  | "superseded"
+  | "cancelled"
+  | "expired";
+
+export type CurrentTerms = {
+  source: "request" | "offer";
+  offer_id: number | null;
+  quantity: number;
+  offered_price: string;
+  expires_at: string | null;
+};
+
+export type CounterOffer = {
+  id: number;
+  quantity: number;
+  offered_price: string;
+  message: string;
+  expires_at: string | null;
+  status: OfferStatus;
+  created_by: DealParty;
+  created_at: string;
+  decided_at: string | null;
+  is_expired: boolean;
+};
+
+export type PurchaseRequest = {
+  id: number;
+  buyer: DealParty;
+  product: DealProduct;
+  quantity: number;
+  offered_price: string;
+  message: string;
+  status: RequestStatus;
+  status_changed_at: string;
+  status_changed_by: DealParty | null;
+  status_note: string;
+  accepted_by: DealParty | null;
+  order_id: number | null;
+  current_terms: CurrentTerms;
+  viewer_side: "buying" | "selling" | null;
+  can_accept: boolean;
+  can_counter: boolean;
+  can_reject: boolean;
+  can_cancel: boolean;
+  offers: CounterOffer[];
+  created_at: string;
+  updated_at: string;
+};
+
+export type PurchaseRequestPayload = {
+  product: number;
+  quantity: number;
+  offered_price: string;
+  message?: string;
+};
+
+export type CounterOfferPayload = {
+  quantity: number;
+  offered_price: string;
+  message?: string;
+  expires_at?: string | null;
+};
+
+export type ActionReasonPayload = {
+  message?: string;
+};
+
+export type OrderEvent = {
+  id: number;
+  from_status: OrderStatus | null;
+  to_status: OrderStatus;
+  actor: DealParty | null;
+  note: string;
+  created_at: string;
+};
+
+export type OrderStatus =
+  | "pending"
+  | "negotiating"
+  | "confirmed"
+  | "completed"
+  | "cancelled";
+
+export type Order = {
+  id: number;
+  purchase_request_id: number;
+  buyer: DealParty;
+  farmer: DealParty;
+  product: DealProduct;
+  quantity: number;
+  unit_price: string;
+  total_price: string;
+  status: OrderStatus;
+  events: OrderEvent[];
+  created_at: string;
+  updated_at: string;
+};

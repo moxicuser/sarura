@@ -22,9 +22,12 @@ import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { SellPage } from "./pages/SellPage";
 import { VerifyEmailPage } from "./pages/VerifyEmailPage";
 import { MyProductsPage } from "./pages/dashboard/MyProductsPage";
+import { OrdersPage } from "./pages/dashboard/OrdersPage";
 import { PlaceholderSectionPage } from "./pages/dashboard/PlaceholderSectionPage";
 import { ProductFormPage } from "./pages/dashboard/ProductFormPage";
 import { ProfilePage } from "./pages/dashboard/ProfilePage";
+import { RequestDetailPage } from "./pages/dashboard/RequestDetailPage";
+import { RequestsPage } from "./pages/dashboard/RequestsPage";
 import { SavedProductsPage } from "./pages/dashboard/SavedProductsPage";
 
 export function AppRoutes() {
@@ -54,11 +57,9 @@ export function AppRoutes() {
             <Route path="products" element={<MyProductsPage />} />
             <Route path="products/new" element={<ProductFormPage />} />
             <Route path="products/:id/edit" element={<ProductFormPage />} />
-            <Route
-              path="requests"
-              element={<PlaceholderSectionPage section="requests" />}
-            />
-            <Route path="orders" element={<PlaceholderSectionPage section="orders" />} />
+            <Route path="requests" element={<RequestsPage />} />
+            <Route path="requests/:id" element={<RequestDetailPage />} />
+            <Route path="orders" element={<OrdersPage />} />
             <Route path="saved" element={<SavedProductsPage />} />
             <Route path="messages" element={<PlaceholderSectionPage section="messages" />} />
             <Route path="profile" element={<ProfilePage />} />

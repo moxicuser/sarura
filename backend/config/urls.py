@@ -18,6 +18,7 @@ urlpatterns = [
     path("api/auth/", include("accounts.urls")),
     path("api/", include("core.urls")),
     path("api/", include("marketplace.urls")),
+    path("api/", include("deals.urls")),
 ]
 
 if settings.DEBUG:

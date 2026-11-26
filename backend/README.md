@@ -198,6 +198,47 @@ Listing rules (from `docs/step1-marketplace-rules.md`):
   it under `media/products/`. Alt text falls back to the crop name.
 - Public farmer profiles never expose email, phone, sector or cell.
 
+## Deals API (`/api/deals/`)
+
+Purchase requests, negotiation and confirmed orders from Step 10. All endpoints
+need a session; signed-in writes use `X-CSRFToken` from `/api/auth/csrf/`.
+
+| Method | Path | Auth | Purpose |
+|---|---|---|---|
+| GET/POST | `requests/` | buyer/farmer / buyer | List private requests, or open one with `product`, `quantity`, `offered_price`, optional `message` |
+| GET | `requests/{id}/` | participant | Full request with terms, permission flags and offer history |
+| POST | `requests/{id}/accept/` | participant | Farmer accepts opening terms, or buyer accepts the latest counter |
+| POST | `requests/{id}/counter/` | farmer | Store a counter with `quantity`, `offered_price`, optional `message` and future `expires_at` |
+| POST | `requests/{id}/reject/` | participant | Close the request; farmer rejects it or buyer rejects the outstanding counter |
+| POST | `requests/{id}/cancel/` | participant | Either party closes the request without an order |
+| GET | `orders/` | buyer/farmer | List orders involving the signed-in user |
+| GET | `orders/{id}/` | participant | Order detail with change history |
+
+Request lists accept `product`, `status` and `side=buying|selling` filters;
+order lists accept `status`. Only the buyer and the listing's farmer can read a
+deal. Request POST is buyer-only; counter POST is farmer-only. Others receive
+`403`.
+
+Rules implemented from `docs/step1-marketplace-rules.md` §7:
+
+- One active (`pending` or `negotiating`) request per buyer per listing; a
+  closed request frees the buyer to send a new one.
+- Request quantity cannot exceed listing stock; only active listings and
+  somebody else's listing can be requested.
+- Every counter is a new `Offer` row. A farmer can revise an unanswered counter;
+  the previous pending offer becomes `superseded` so only the newest is
+  actionable. The full history is retained.
+- An expired pending counter closes the request as `expired`. Expiry runs when
+  deal pages are read or written, outside `transaction.atomic()`, so a later
+  validation error cannot roll it back. No background worker is needed.
+- Acceptance creates one `Order` in a locked transaction, reduces listing stock
+  and marks it `sold` at zero. An `OrderEvent` records actor, time and status.
+  Orders start `confirmed` because Step 10 only creates them after both sides
+  accept; Step 12 adds the remaining status flow and notifications.
+
+The founder review decisions for this step are in
+`docs/step10-purchase-requests.md`.
+
 ## Notes
 
 - Secrets live only in `.env` (git-ignored). `.env.example` documents every key.

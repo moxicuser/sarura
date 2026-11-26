@@ -4,9 +4,15 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import i18n from "../i18n";
-import { jsonResponse, makeProduct, mockFetch } from "../test/apiMock";
+import {
+  jsonResponse,
+  makeProduct,
+  makePurchaseRequest,
+  mockFetch,
+  paginated,
+} from "../test/apiMock";
 import { authResponse, makeAuthUser, renderWithAuth } from "../test/auth";
-import type { ProductDetail, SavedProduct } from "../types/api";
+import type { ProductDetail, PurchaseRequest, SavedProduct } from "../types/api";
 import { ProductDetailPage } from "./ProductDetailPage";
 
 describe("ProductDetailPage", () => {
@@ -86,5 +92,75 @@ describe("ProductDetailPage", () => {
         ),
       ).toBe(true);
     });
+  });
+
+  it("lets a buyer send a purchase request with the chosen terms", async () => {
+    const user = makeAuthUser({ is_buyer: true, is_farmer: false });
+    const product: ProductDetail = {
+      ...makeProduct({ id: 5, crop_name: "Imiti" }),
+      description: "Ibiti bishya.",
+      available_from: null,
+      images: [],
+      location_label: "Gasabo",
+      updated_at: "2026-10-01T09:00:00Z",
+    };
+    const created: PurchaseRequest = makePurchaseRequest({ id: 21, buyer: { id: user.id, display_name: user.full_name } });
+    const fetchMock = mockFetch((url, init) => {
+      const auth = authResponse(url, user);
+      if (auth) {
+        return auth;
+      }
+      if (url === "/api/products/5/") {
+        return jsonResponse(product);
+      }
+      if (url === "/api/deals/requests/?product=5") {
+        return jsonResponse(paginated([]));
+      }
+      if (url === "/api/deals/requests/" && init?.method === "POST") {
+        return jsonResponse(created, 201);
+      }
+      return jsonResponse({}, 404);
+    });
+
+    renderWithAuth(
+      <MemoryRouter initialEntries={["/products/5"]}>
+        <Routes>
+          <Route path="/products/:id" element={<ProductDetailPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    const quantity = await screen.findByLabelText(/Ingano ushaka/);
+    const price = screen.getByLabelText(/Igiciro utanga/);
+    const message = screen.getByLabelText("Ubutumwa (bidakenewe)");
+    await userEvent.setup().clear(quantity);
+    await userEvent.type(quantity, "120");
+    await userEvent.clear(price);
+    await userEvent.type(price, "500.00");
+    await userEvent.type(message, "Ndabona ibicuruzwa.");
+    await userEvent.click(
+      screen.getByRole("button", { name: "Ohereza ikibazo cy'ugucuruza" }),
+    );
+
+    await waitFor(() => {
+      const call = fetchMock.mock.calls.find(
+        ([url, init]) => url === "/api/deals/requests/" && init?.method === "POST",
+      );
+      expect(call).toBeDefined();
+      expect(JSON.parse(String(call?.[1]?.body))).toEqual({
+        product: 5,
+        quantity: 120,
+        offered_price: "500.00",
+        message: "Ndabona ibicuruzwa.",
+      });
+    });
+
+    expect(
+      await screen.findByText("Icyifuzo cyoherejwe. Gikurikirane muri 'Ibisaba byanjye'."),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Reba icyifuzo cyanjye" })).toHaveAttribute(
+      "href",
+      "/dashboard/requests/21",
+    );
   });
 });

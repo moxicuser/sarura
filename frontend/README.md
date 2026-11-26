@@ -39,7 +39,7 @@ frontend/
     i18n/                # react-i18next setup and rw/en translation files
     lib/                 # API client, auth context, CSRF, formatters, helpers
     pages/               # Public, auth and overview pages
-    pages/dashboard/     # Products, product form, saved, placeholders, profile
+    pages/dashboard/     # Products, requests, orders, saved, profile, placeholders
     test/                # Vitest setup, API mocks and auth fixtures
     types/               # API response types
 ```
@@ -50,7 +50,7 @@ frontend/
 |---|---|---|
 | `/` | Home | Hero, search, popular categories, latest listings, how it works, calls to action |
 | `/marketplace` | Marketplace | Filters live in the URL: search, category, province/district/sector, price, quantity, verified, sort, page |
-| `/products/:id` | Product detail | Photos, price, quantity, location, farmer summary, save/unsave for buyers, login gate for first contact |
+| `/products/:id` | Product detail | Photos, price, quantity, location, farmer summary, save/unsave and purchase request for buyers, login gate for first contact |
 | `/farmers/:id` | Farmer profile | Name, district, verification badge, active listings; no phone or email |
 | `/how-it-works` | How It Works | Three steps for farmers and three for buyers |
 | `/about` | About Us | Problem, mission, how it works, story and team |
@@ -78,16 +78,17 @@ is hidden in a menu.
 | `/dashboard/products` | My products | Farmer-only list; edit, mark sold and hide with status words |
 | `/dashboard/products/new` | Add product | Farmer-only create form with optional photo upload |
 | `/dashboard/products/:id/edit` | Edit product | Farmer-only; owner checked before the form is shown |
-| `/dashboard/requests` | Requests | Clearly labelled placeholder until Step 10 |
-| `/dashboard/orders` | Orders | Clearly labelled placeholder until Step 11 |
+| `/dashboard/requests` | Requests | Private list grouped by side for dual-role accounts; link to detail |
+| `/dashboard/requests/:id` | Request detail | Terms, offer history, accept/counter/reject/cancel and order link |
+| `/dashboard/orders` | Orders | Confirmed orders with parties, terms, totals and change history |
 | `/dashboard/saved` | Saved | Buyer-only saved listings with remove action |
 | `/dashboard/messages` | Messages | Clearly labelled placeholder until Step 12 |
 | `/dashboard/profile` | Profile | Edit account/farm/business details, add a role, see verification states |
 
 A missing role shows an explanatory notice instead of calling the wrong
-endpoint. Requests, orders and messages are reachable but intentionally do not
-pretend to work yet. See `docs/step9-dashboards.md` for the mobile-tab choice
-and its `[review]` note.
+endpoint. Messages remain a clearly labelled placeholder until Step 12. See
+`docs/step9-dashboards.md` for the mobile-tab choice and its `[review]` note,
+and `docs/step10-purchase-requests.md` for negotiation decisions.
 
 The contact details shown on `/contact` and `/privacy` are placeholders that
 need founder confirmation. See `docs/step7-public-content.md` for the `[review]`
@@ -102,6 +103,8 @@ list.
 - `src/lib/csrf.ts` fetches `/api/auth/csrf/` and keeps the token; it is
   re-fetched after login, registration and logout because Django rotates it.
 - `src/lib/useApi.ts` handles loading/error state and aborts stale requests.
+- `src/lib/deals.ts` holds deal status tones; `src/types/api.ts` holds request,
+  offer and order response types.
 - `VITE_API_BASE_URL` can override the default `/api` base.
 - Image URLs come from the backend as absolute URLs, which the `/media` dev
   proxy forwards to Django.
@@ -117,8 +120,8 @@ list.
   crafted link cannot redirect to another site.
 - On a product page, "contact the farmer" opens the login gate from guide
   section 4. After login or registration the visitor returns to the same
-  listing. Signed-in buyers can save/unsave the listing; the "messaging is
-  coming" panel remains until the deals step ships.
+  listing. Signed-in buyers can save/unsave the listing and send a purchase
+  request; the "messaging is coming" panel remains until Step 12.
 - One account can be a buyer, a farmer or both. The register form offers the
   three choices and shows farm or business fields as needed. The dashboard
   profile can add the missing role through `PATCH /api/auth/roles/`; roles are
@@ -141,6 +144,13 @@ upgrades, saved-product behaviour and photo limits are recorded in
 `docs/step9-dashboards.md`. The main open decisions are the deviation from the
 drafted bottom-tab + More sheet, the dual-role landing page, and native review
 of the new Kinyarwanda copy.
+
+## Step 10 review notes
+
+Negotiation actions, counter expiry, order creation and stock behaviour are
+recorded in `docs/step10-purchase-requests.md`. The main open decisions are
+whether an order should start `confirmed`, whether stock should be reserved
+before acceptance, and whether a farmer can revise an unanswered counter.
 
 ## Colour palette
 
@@ -205,8 +215,11 @@ the signed-in header menu.
 
 Step 9 adds tests for the role-aware dashboard tabs, farmer listing list and
 status actions, product create form payload, saved-product list and removal,
-profile update/role upgrade/verification rows, and product save/unsave. API
-calls are mocked with a small fetch double in `src/test/apiMock.ts`;
-`src/test/auth.tsx` adds a signed-in user fixture and wraps components in
-`AuthProvider`. The full run uses a 15-second per-test timeout because the
-larger jsdom suite can be slow on development machines.
+profile update/role upgrade/verification rows, and product save/unsave. Step 10
+adds tests for the product request form, dual-role request grouping, farmer
+counter, buyer acceptance, reject/cancel reasons, order history and empty
+states, and plain-text rendering of message content. API calls are mocked with
+a small fetch double in `src/test/apiMock.ts`; `src/test/auth.tsx` adds a
+signed-in user fixture and wraps components in `AuthProvider`. The full run
+uses a 15-second per-test timeout because the larger jsdom suite can be slow on
+development machines.
