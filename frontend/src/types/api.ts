@@ -52,10 +52,13 @@ export type ProductListItem = {
   price_per_unit: string;
   price_basis: "fixed" | "negotiable";
   district_name: string;
+  province_id: number;
   sector_name: string | null;
   status: "active" | "sold" | "hidden";
   primary_image: string | null;
   farmer: FarmerSummary;
+  is_saved: boolean;
+  saved_product_id: number | null;
   created_at: string;
 };
 
@@ -153,4 +156,47 @@ export type RegisterPayload = {
 export type LoginPayload = {
   email: string;
   password: string;
+};
+
+/** Fields accepted by POST /products/ and PATCH /products/{id}/. */
+export type ProductWritePayload = {
+  category: number;
+  crop_name: string;
+  description?: string;
+  quantity: number;
+  unit: "kg";
+  price_per_unit: string;
+  price_basis: "fixed" | "negotiable";
+  district: number;
+  sector?: number | null;
+  available_from?: string | null;
+  status: "active" | "sold" | "hidden";
+};
+
+export type SavedProduct = {
+  id: number;
+  product_id: number;
+  product: ProductListItem;
+  created_at: string;
+};
+
+export type RoleUpdatePayload = {
+  is_buyer?: boolean;
+  is_farmer?: boolean;
+  farm_name?: string;
+  cooperative_name?: string;
+  business_name?: string;
+  buyer_type?: BuyerType;
+};
+
+export type ProfileUpdatePayload = {
+  full_name?: string;
+  phone?: string;
+  province?: number | null;
+  district?: number | null;
+  sector?: number | null;
+  cell?: string;
+  language?: "rw" | "en";
+  farmer_profile?: Partial<FarmerProfileDetails>;
+  buyer_profile?: Partial<BuyerProfileDetails>;
 };

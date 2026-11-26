@@ -45,10 +45,13 @@ export function makeProduct(overrides: Partial<ProductListItem> = {}): ProductLi
     price_per_unit: "650.00",
     price_basis: "negotiable",
     district_name: "Gasabo",
+    province_id: 1,
     sector_name: "Kimironko",
     status: "active",
     primary_image: null,
     farmer,
+    is_saved: false,
+    saved_product_id: null,
     created_at: "2026-10-01T09:00:00Z",
     ...overrides,
   };

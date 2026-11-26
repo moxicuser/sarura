@@ -9,8 +9,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.models import User
-from accounts.permissions import IsFarmer, IsOwner
-from marketplace.models import MAX_PHOTOS, Category, Product, ProductImage
+from accounts.permissions import IsBuyer, IsFarmer, IsOwner
+from marketplace.models import MAX_PHOTOS, Category, Product, ProductImage, SavedProduct
 from marketplace.serializers import (
     SORT_NEAREST,
     SORT_PRICE,
@@ -21,6 +21,8 @@ from marketplace.serializers import (
     ProductListSerializer,
     ProductWriteSerializer,
     PublicFarmerSerializer,
+    SavedProductCreateSerializer,
+    SavedProductSerializer,
 )
 
 
@@ -253,6 +255,52 @@ class ProductImageDetailView(APIView):
             image.image.delete(save=False)
         image.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class SavedProductListView(generics.ListCreateAPIView):
+    """Buyer-only bookmarks on active listings."""
+
+    permission_classes = [IsBuyer]
+
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return SavedProductCreateSerializer
+        return SavedProductSerializer
+
+    def get_queryset(self):
+        # Sold listings stay visible with their status; hidden (archived) ones
+        # are removed from a buyer's view until the farmer restores them.
+        return (
+            SavedProduct.objects.filter(buyer=self.request.user)
+            .exclude(product__status=Product.Status.HIDDEN)
+            .select_related(
+                "product__category",
+                "product__farmer",
+                "product__farmer__farmer_profile",
+                "product__district",
+                "product__sector",
+            )
+            .prefetch_related("product__images")
+        )
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        saved, created = SavedProduct.objects.get_or_create(
+            buyer=request.user, product=serializer.validated_data["product"]
+        )
+        data = SavedProductSerializer(saved, context=self.get_serializer_context()).data
+        return Response(data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+
+
+class SavedProductDetailView(generics.DestroyAPIView):
+    """A buyer can remove only their own bookmark."""
+
+    permission_classes = [IsBuyer, IsOwner]
+    owner_field = "buyer"
+
+    def get_queryset(self):
+        return SavedProduct.objects.filter(buyer=self.request.user).select_related("buyer")
 
 
 class PublicFarmerView(generics.RetrieveAPIView):

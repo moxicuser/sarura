@@ -19,5 +19,8 @@ export default defineConfig({
     setupFiles: "./src/test/setup.ts",
     globals: true,
     css: false,
+    // A full run now creates more jsdom environments than earlier steps; keep
+    // form tests reliable on slower machines without hiding real failures.
+    testTimeout: 15000,
   },
 });

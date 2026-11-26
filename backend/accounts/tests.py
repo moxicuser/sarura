@@ -536,3 +536,97 @@ class AuthThrottleTests(AccountTestCase):
 
         self.assertEqual(first.status_code, 200)
         self.assertEqual(blocked.status_code, 429)
+
+
+class RoleUpdateTests(AccountTestCase):
+    def setUp(self):
+        super().setUp()
+        self.client = APIClient()
+
+    def test_anonymous_user_cannot_add_a_role(self):
+        response = self.client.patch(
+            "/api/auth/roles/", {"is_farmer": True}, format="json"
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_buyer_can_add_farmer_role_and_gets_a_profile(self):
+        buyer = self.make_user(
+            email="buyer@example.com", phone="0788111222", is_farmer=False, is_buyer=True
+        )
+        BuyerProfile.objects.filter(user=buyer).update(business_name="Original Buyer")
+        self.client.force_login(buyer)
+
+        response = self.client.patch(
+            "/api/auth/roles/",
+            {
+                "is_buyer": True,
+                "is_farmer": True,
+                "farm_name": "Nyabisindu Farm",
+                "cooperative_name": "Ihuzo Cooperative",
+                "business_name": "Should be ignored",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 200, response.data)
+        buyer.refresh_from_db()
+        self.assertTrue(buyer.is_buyer)
+        self.assertTrue(buyer.is_farmer)
+        self.assertEqual(buyer.farmer_profile.farm_name, "Nyabisindu Farm")
+        self.assertEqual(
+            buyer.farmer_profile.cooperative_name, "Ihuzo Cooperative"
+        )
+        self.assertEqual(buyer.buyer_profile.business_name, "Original Buyer")
+        self.assertTrue(response.data["is_farmer"])
+
+    def test_farmer_can_add_buyer_role_and_gets_a_profile(self):
+        farmer = self.make_user(is_farmer=True, is_buyer=False)
+        self.client.force_login(farmer)
+
+        response = self.client.patch(
+            "/api/auth/roles/",
+            {
+                "is_farmer": True,
+                "is_buyer": True,
+                "business_name": "Kigali Produce Buyers",
+                "buyer_type": "company",
+                "farm_name": "Should be ignored",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 200, response.data)
+        farmer.refresh_from_db()
+        self.assertTrue(farmer.is_farmer)
+        self.assertTrue(farmer.is_buyer)
+        self.assertEqual(farmer.farmer_profile.farm_name, "")
+        self.assertEqual(
+            farmer.buyer_profile.business_name, "Kigali Produce Buyers"
+        )
+        self.assertEqual(farmer.buyer_profile.buyer_type, "company")
+
+    def test_existing_roles_cannot_be_removed(self):
+        user = self.make_user(is_farmer=True, is_buyer=True)
+        self.client.force_login(user)
+
+        for field in ("is_buyer", "is_farmer"):
+            response = self.client.patch(
+                "/api/auth/roles/", {field: False}, format="json"
+            )
+            self.assertEqual(response.status_code, 400)
+            self.assertIn(field, response.data)
+
+        user.refresh_from_db()
+        self.assertTrue(user.is_buyer)
+        self.assertTrue(user.is_farmer)
+
+    def test_role_update_requires_a_new_role(self):
+        user = self.make_user(is_farmer=True, is_buyer=True)
+        self.client.force_login(user)
+
+        response = self.client.patch(
+            "/api/auth/roles/", {"is_buyer": True, "is_farmer": True}, format="json"
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("roles", response.data)

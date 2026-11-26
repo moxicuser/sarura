@@ -16,6 +16,7 @@ from marketplace.models import (
     Category,
     Product,
     ProductImage,
+    SavedProduct,
 )
 from marketplace.validators import validate_image_format, validate_image_size
 
@@ -160,8 +161,11 @@ class ProductListSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     farmer = PublicFarmerSummarySerializer(read_only=True)
     district_name = serializers.CharField(source="district.name", read_only=True)
+    province_id = serializers.IntegerField(source="district.province_id", read_only=True)
     sector_name = serializers.CharField(source="sector.name", read_only=True, default=None)
     primary_image = serializers.SerializerMethodField()
+    is_saved = serializers.SerializerMethodField()
+    saved_product_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
@@ -174,12 +178,33 @@ class ProductListSerializer(serializers.ModelSerializer):
             "price_per_unit",
             "price_basis",
             "district_name",
+            "province_id",
             "sector_name",
             "status",
             "primary_image",
             "farmer",
+            "is_saved",
+            "saved_product_id",
             "created_at",
         ]
+
+    def saved_for_request(self, obj):
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        if not user or not user.is_authenticated or not user.is_buyer:
+            return None
+        # Shared across child serializers in a many=True response.
+        cache = self.context.setdefault("_saved_products", {})
+        if obj.pk not in cache:
+            cache[obj.pk] = SavedProduct.objects.filter(buyer=user, product=obj).first()
+        return cache[obj.pk]
+
+    def get_is_saved(self, obj) -> bool:
+        return self.saved_for_request(obj) is not None
+
+    def get_saved_product_id(self, obj):
+        saved = self.saved_for_request(obj)
+        return saved.id if saved else None
 
     def get_primary_image(self, obj):
         image = obj.primary_image
@@ -270,6 +295,26 @@ class ProductWriteSerializer(serializers.ModelSerializer):
             )
 
         return attrs
+
+
+class SavedProductSerializer(serializers.ModelSerializer):
+    """A buyer's bookmark, with the listing details needed by the dashboard."""
+
+    product = ProductListSerializer(read_only=True)
+    product_id = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = SavedProduct
+        fields = ["id", "product_id", "product", "created_at"]
+
+
+class SavedProductCreateSerializer(serializers.Serializer):
+    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
+
+    def validate_product(self, value):
+        if value.status != Product.Status.ACTIVE:
+            raise serializers.ValidationError("Only active listings can be saved.")
+        return value
 
 
 class PublicFarmerSerializer(PublicFarmerSummarySerializer):

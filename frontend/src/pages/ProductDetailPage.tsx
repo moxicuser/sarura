@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router-dom";
 
+import { FormAlert } from "../components/auth/FormAlert";
 import { LoginGate } from "../components/auth/LoginGate";
-import { ErrorState, LoadingState, VerifiedBadge, buttonStyles } from "../components/ui";
+import { Button, ErrorState, LoadingState, VerifiedBadge, buttonStyles } from "../components/ui";
 import { normalizeLanguage } from "../i18n";
-import { apiGet } from "../lib/api";
+import { apiDelete, apiGet, apiPost } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import {
   badgeLevel,
@@ -15,17 +16,21 @@ import {
   localizedName,
 } from "../lib/format";
 import { useApi } from "../lib/useApi";
-import type { ProductDetail } from "../types/api";
+import type { ProductDetail, SavedProduct } from "../types/api";
 import { NotFoundPage } from "./NotFoundPage";
 
 export function ProductDetailPage() {
   const { t, i18n } = useTranslation();
   const language = normalizeLanguage(i18n.resolvedLanguage ?? i18n.language);
-  const { status } = useAuth();
+  const { status, user } = useAuth();
   const { id } = useParams();
   const productId = Number(id);
   const [activeImage, setActiveImage] = useState(0);
   const [gateOpen, setGateOpen] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [savedId, setSavedId] = useState<number | null>(null);
+  const [savingProduct, setSavingProduct] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const product = useApi<ProductDetail>(
     (signal) => apiGet<ProductDetail>(`/products/${productId}/`, {}, signal),
@@ -34,7 +39,36 @@ export function ProductDetailPage() {
 
   useEffect(() => {
     setActiveImage(0);
-  }, [product.data?.id]);
+    setSaved(Boolean(product.data?.is_saved));
+    setSavedId(product.data?.saved_product_id ?? null);
+  }, [product.data?.id, product.data?.is_saved, product.data?.saved_product_id]);
+
+  const canSave = status === "authenticated" && Boolean(user?.is_buyer);
+
+  const toggleSaved = async () => {
+    if (!canSave || !product.data) {
+      return;
+    }
+    setSavingProduct(true);
+    setSaveError(null);
+    try {
+      if (saved && savedId) {
+        await apiDelete(`/buyer/saved-products/${savedId}/`);
+        setSaved(false);
+        setSavedId(null);
+      } else {
+        const result = await apiPost<SavedProduct>("/buyer/saved-products/", {
+          product: product.data.id,
+        });
+        setSaved(true);
+        setSavedId(result.id);
+      }
+    } catch {
+      setSaveError(t("product.saveFailed"));
+    } finally {
+      setSavingProduct(false);
+    }
+  };
 
   if (!Number.isInteger(productId) || productId <= 0) {
     return <NotFoundPage />;
@@ -187,6 +221,33 @@ export function ProductDetailPage() {
               {t("product.contactPrivacy")}
             </p>
           </div>
+
+          {canSave && (
+            <div className="mt-4 rounded-xl border border-sarura-border bg-white p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="text-sm font-semibold text-sarura-ink">
+                  {t("product.saveTitle")}
+                </p>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={savingProduct}
+                  onClick={() => void toggleSaved()}
+                >
+                  {savingProduct
+                    ? t("product.saveWorking")
+                    : saved
+                      ? t("product.savedProduct")
+                      : t("product.saveProduct")}
+                </Button>
+              </div>
+              {saveError && (
+                <div className="mt-3">
+                  <FormAlert message={saveError} />
+                </div>
+              )}
+            </div>
+          )}
 
           {status === "authenticated" ? (
             <div className="mt-4 rounded-xl border border-sarura-green/40 bg-sarura-green-light p-4">

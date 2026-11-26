@@ -67,11 +67,12 @@ the translated "too many attempts" message.
 
 ## Dashboard placeholder
 
-`/dashboard` is intentionally a starting point: account details, verification
-level, role badge and links back to the marketplace and selling page. The full
-farmer and buyer dashboards (listings, requests, orders, messages) are the next
-guide step. `[review]` Confirm the landing view for a dual-role account when the
-real dashboards arrive — the guide leaves this open.
+`/dashboard` started as an account summary with a role badge and links back to
+the marketplace and selling page; Step 9 replaces it with the real overview and
+section tabs. The full farmer and buyer dashboards (listings, requests, orders,
+messages) arrived in the next guide step. `[review]` The landing view for a
+dual-role account is now the overview; see `docs/step9-dashboards.md` to confirm
+that choice.
 
 ## Language
 

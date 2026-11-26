@@ -15,7 +15,7 @@ from rest_framework.test import APIClient
 
 from accounts.models import BuyerProfile, FarmerProfile, User
 from core.models import District, Province, Sector
-from marketplace.models import Category, Product, ProductImage
+from marketplace.models import Category, Product, ProductImage, SavedProduct
 
 
 def make_image(name="photo.png", size=(12, 12), image_format="PNG"):
@@ -785,3 +785,98 @@ class ProductPaginationTests(MarketplaceTestBase):
 
     def test_page_out_of_range_returns_404(self):
         self.assertEqual(self.client.get("/api/products/?page=99").status_code, 404)
+
+
+class SavedProductTests(MarketplaceTestBase):
+    def setUp(self):
+        self.client = APIClient()
+        self.farmer = self.make_farmer()
+        self.buyer = self.make_buyer()
+        self.product = self.make_product(self.farmer)
+
+    def test_only_buyers_can_save_products(self):
+        response = self.client.post(
+            "/api/buyer/saved-products/", {"product": self.product.id}, format="json"
+        )
+        self.assertEqual(response.status_code, 403)
+
+        self.client.force_login(self.farmer)
+        response = self.client.post(
+            "/api/buyer/saved-products/", {"product": self.product.id}, format="json"
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_buyer_can_save_product_once(self):
+        self.client.force_login(self.buyer)
+
+        first = self.client.post(
+            "/api/buyer/saved-products/", {"product": self.product.id}, format="json"
+        )
+        second = self.client.post(
+            "/api/buyer/saved-products/", {"product": self.product.id}, format="json"
+        )
+
+        self.assertEqual(first.status_code, 201, first.data)
+        self.assertEqual(second.status_code, 200, second.data)
+        self.assertEqual(first.data["product_id"], self.product.id)
+        self.assertEqual(first.data["product"]["crop_name"], "Irish potato")
+        self.assertEqual(SavedProduct.objects.filter(buyer=self.buyer).count(), 1)
+
+    def test_sold_and_hidden_products_cannot_be_saved(self):
+        self.client.force_login(self.buyer)
+        sold = self.make_product(self.farmer, crop_name="Sold maize", status=Product.Status.SOLD)
+        hidden = self.make_product(
+            self.farmer, crop_name="Hidden beans", status=Product.Status.HIDDEN
+        )
+
+        for product in (sold, hidden):
+            response = self.client.post(
+                "/api/buyer/saved-products/", {"product": product.id}, format="json"
+            )
+            self.assertEqual(response.status_code, 400)
+            self.assertIn("product", response.data)
+
+    def test_saved_list_is_private_and_hides_archived_listings(self):
+        other_buyer = self.make_buyer(email="other@example.com", phone="0788333444")
+        SavedProduct.objects.create(buyer=self.buyer, product=self.product)
+        other_saved = SavedProduct.objects.create(buyer=other_buyer, product=self.product)
+        hidden = self.make_product(
+            self.farmer, crop_name="Hidden crop", status=Product.Status.HIDDEN
+        )
+        SavedProduct.objects.create(buyer=self.buyer, product=hidden)
+
+        self.client.force_login(self.buyer)
+        response = self.client.get("/api/buyer/saved-products/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["count"], 1)
+        results = response.data["results"]
+        self.assertEqual(results[0]["product_id"], self.product.id)
+        self.assertNotIn(other_saved.id, [item["id"] for item in results])
+
+    def test_buyer_can_remove_only_their_own_bookmark(self):
+        other_buyer = self.make_buyer(email="other@example.com", phone="0788333444")
+        saved = SavedProduct.objects.create(buyer=self.buyer, product=self.product)
+        other_saved = SavedProduct.objects.create(buyer=other_buyer, product=self.product)
+
+        self.client.force_login(self.buyer)
+        self.assertEqual(
+            self.client.delete(f"/api/buyer/saved-products/{other_saved.id}/").status_code,
+            404,
+        )
+        self.assertEqual(
+            self.client.delete(f"/api/buyer/saved-products/{saved.id}/").status_code, 204
+        )
+        self.assertFalse(SavedProduct.objects.filter(pk=saved.pk).exists())
+        self.assertTrue(SavedProduct.objects.filter(pk=other_saved.pk).exists())
+
+    def test_product_detail_reports_saved_state_to_the_buyer(self):
+        detail = self.client.get(f"/api/products/{self.product.id}/")
+        self.assertFalse(detail.data["is_saved"])
+        self.assertIsNone(detail.data["saved_product_id"])
+
+        saved = SavedProduct.objects.create(buyer=self.buyer, product=self.product)
+        self.client.force_login(self.buyer)
+        detail = self.client.get(f"/api/products/{self.product.id}/")
+        self.assertTrue(detail.data["is_saved"])
+        self.assertEqual(detail.data["saved_product_id"], saved.id)

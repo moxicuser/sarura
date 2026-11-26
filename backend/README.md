@@ -10,7 +10,7 @@ backend/
   config/          # Django settings and root URLs
   core/            # contact messages, static page content, health check
   accounts/        # users, roles, profiles, verification
-  marketplace/     # categories, products, images, search
+  marketplace/     # categories, products, images, search, saved products
   deals/           # purchase requests, negotiation, orders
   messaging/       # conversations and messages
   notifications/
@@ -66,6 +66,7 @@ free text because the sector is the marketplace's working area.
 | POST | `login/` | public | Email + password login (session cookie) |
 | POST | `logout/` | logged in | End the session |
 | GET/PATCH | `me/` | logged in | Read or update profile, location and farm/business details |
+| PATCH | `roles/` | logged in | Add a buyer or farmer role; existing roles cannot be removed |
 | POST | `password-reset/` | public | Send a reset link (same response for unknown emails) |
 | POST | `password-reset/confirm/` | public | Set a new password with uid + token |
 | GET/POST | `verify-email/` | public | Confirm an email address with uid + token |
@@ -73,7 +74,9 @@ free text because the sector is the marketplace's working area.
 
 Verification is a named ladder: **Unverified → Account verified** (email
 confirmed) **→ Identity reviewed → Cooperative verified** (staff-set in Django
-admin). One account can be both a buyer and a farmer.
+admin). One account can be both a buyer and a farmer. `PATCH /api/auth/roles/`
+adds a role and creates the matching profile row; it rejects attempts to remove
+an existing role. The React profile page uses it for the "add role" buttons.
 
 In development, emails (verification and password reset) print to the console
 (`DJANGO_EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend`). Links
@@ -157,6 +160,8 @@ admin (`Contact messages`), where staff can mark them handled.
 | POST | `products/{id}/images/` | owner | Upload a photo (multipart: `image`, optional `alt_text`, `position`) |
 | PATCH/DELETE | `products/{id}/images/{image_id}/` | owner | Change alt text/position, or remove a photo |
 | GET | `farmers/{id}/` | public | Public farmer profile: name, district, badge, active listings |
+| GET/POST | `buyer/saved-products/` | buyer | List bookmarks or save an active listing (`{"product": id}`) |
+| DELETE | `buyer/saved-products/{id}/` | buyer | Remove your own bookmark |
 
 `GET /api/products/` accepts these optional query parameters:
 
@@ -174,6 +179,13 @@ Invalid values return `400`. Results always contain active listings only.
 Nearest sorting currently approximates distance with tiers — same district,
 same province, then everywhere else — because listings have no coordinates yet
 `[review]`; without a location it falls back to newest.
+
+Product list and detail responses include `province_id`, `is_saved` and
+`saved_product_id`. The last two are `false`/`null` for anonymous users and
+non-buyers; for a signed-in buyer they reflect that buyer's private bookmark.
+Saving the same product twice is idempotent (the second call returns `200`).
+Sold listings stay in a buyer's saved list with their status; hidden (archived)
+listings are excluded until restored.
 
 Listing rules (from `docs/step1-marketplace-rules.md`):
 

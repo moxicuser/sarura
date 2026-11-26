@@ -127,6 +127,85 @@ class UserSerializer(serializers.ModelSerializer):
         return instance
 
 
+class RoleUpdateSerializer(serializers.Serializer):
+    """Add a role to an existing account; roles can never be removed here.
+
+    The account may already have the other role. Details are only used when a
+    matching role is newly added, so this endpoint cannot overwrite an existing
+    farmer or buyer profile.
+    """
+
+    is_buyer = serializers.BooleanField(required=False)
+    is_farmer = serializers.BooleanField(required=False)
+    farm_name = serializers.CharField(max_length=150, required=False, allow_blank=True, default="")
+    cooperative_name = serializers.CharField(
+        max_length=150, required=False, allow_blank=True, default=""
+    )
+    business_name = serializers.CharField(
+        max_length=150, required=False, allow_blank=True, default=""
+    )
+    buyer_type = serializers.ChoiceField(
+        choices=BuyerProfile.BuyerType.choices,
+        required=False,
+        default=BuyerProfile.BuyerType.INDIVIDUAL,
+    )
+
+    def validate(self, attrs):
+        user = self.context["request"].user
+        wants_buyer = attrs.get("is_buyer", user.is_buyer)
+        wants_farmer = attrs.get("is_farmer", user.is_farmer)
+
+        if user.is_buyer and attrs.get("is_buyer") is False:
+            raise serializers.ValidationError(
+                {"is_buyer": "The buyer role cannot be removed from an account."}
+            )
+        if user.is_farmer and attrs.get("is_farmer") is False:
+            raise serializers.ValidationError(
+                {"is_farmer": "The farmer role cannot be removed from an account."}
+            )
+        if wants_buyer == user.is_buyer and wants_farmer == user.is_farmer:
+            raise serializers.ValidationError(
+                {"roles": "Choose a role that is not already on this account."}
+            )
+
+        attrs["is_buyer"] = wants_buyer
+        attrs["is_farmer"] = wants_farmer
+        return attrs
+
+    def save(self, **kwargs):
+        user = self.context["request"].user
+        data = self.validated_data
+        changed = []
+
+        if data["is_farmer"] and not user.is_farmer:
+            user.is_farmer = True
+            changed.append("is_farmer")
+            FarmerProfile.objects.get_or_create(
+                user=user,
+                defaults={
+                    "farm_name": data.get("farm_name", ""),
+                    "cooperative_name": data.get("cooperative_name", ""),
+                },
+            )
+
+        if data["is_buyer"] and not user.is_buyer:
+            user.is_buyer = True
+            changed.append("is_buyer")
+            BuyerProfile.objects.get_or_create(
+                user=user,
+                defaults={
+                    "business_name": data.get("business_name", ""),
+                    "buyer_type": data.get(
+                        "buyer_type", BuyerProfile.BuyerType.INDIVIDUAL
+                    ),
+                },
+            )
+
+        if changed:
+            user.save(update_fields=changed)
+        return user
+
+
 class RegisterSerializer(serializers.Serializer):
     """Create an account that can buy, sell, or do both.
 

@@ -164,3 +164,33 @@ class ProductImage(models.Model):
 
     def __str__(self):
         return f"Photo {self.position + 1} of {self.product.crop_name}"
+
+
+class SavedProduct(models.Model):
+    """A buyer's bookmark on a listing.
+
+    Saved listings are a private dashboard feature: only the buyer who saved a
+    product can list or remove that bookmark. A unique pair prevents duplicates.
+    """
+
+    buyer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="saved_products",
+        limit_choices_to={"is_buyer": True},
+    )
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, related_name="saved_by"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["buyer", "product"], name="uniq_saved_product_per_buyer"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.buyer.display_name} saved {self.product.crop_name}"

@@ -22,4 +22,14 @@ urlpatterns = [
         name="product-image-detail",
     ),
     path("farmers/<int:pk>/", views.PublicFarmerView.as_view(), name="farmer-public"),
+    path(
+        "buyer/saved-products/",
+        views.SavedProductListView.as_view(),
+        name="saved-product-list",
+    ),
+    path(
+        "buyer/saved-products/<int:pk>/",
+        views.SavedProductDetailView.as_view(),
+        name="saved-product-detail",
+    ),
 ]

@@ -32,12 +32,14 @@ settings.
 frontend/
   src/
     components/auth/     # auth shell, protected route, login gate, form alert
+    components/dashboard/ # role-aware dashboard section tabs and role notice
     components/layout/   # Header, mobile menu, language toggle, footer, page intro
     components/marketplace/  # ProductCard, ProductGrid
     components/ui/       # Button, Card, fields, feedback states, status/badge
     i18n/                # react-i18next setup and rw/en translation files
     lib/                 # API client, auth context, CSRF, formatters, helpers
-    pages/               # Public, auth and account pages
+    pages/               # Public, auth and overview pages
+    pages/dashboard/     # Products, product form, saved, placeholders, profile
     test/                # Vitest setup, API mocks and auth fixtures
     types/               # API response types
 ```
@@ -48,7 +50,7 @@ frontend/
 |---|---|---|
 | `/` | Home | Hero, search, popular categories, latest listings, how it works, calls to action |
 | `/marketplace` | Marketplace | Filters live in the URL: search, category, province/district/sector, price, quantity, verified, sort, page |
-| `/products/:id` | Product detail | Photos, price, quantity, location, farmer summary, login gate for first contact |
+| `/products/:id` | Product detail | Photos, price, quantity, location, farmer summary, save/unsave for buyers, login gate for first contact |
 | `/farmers/:id` | Farmer profile | Name, district, verification badge, active listings; no phone or email |
 | `/how-it-works` | How It Works | Three steps for farmers and three for buyers |
 | `/about` | About Us | Problem, mission, how it works, story and team |
@@ -61,8 +63,31 @@ frontend/
 | `/reset-password` | Reset password | Reads `uid` + `token` from the email link |
 | `/verify-email` | Verify email | Confirms the address and refreshes the signed-in profile |
 | `/sell` | Sell on SARURA | Explains selling; invites a farmer account or opens the dashboard |
-| `/dashboard` | Dashboard | Protected placeholder for the Step 9 buyer/farmer dashboards |
+| `/dashboard` | Overview | Protected account summary, verification levels and shortcuts |
 | `*` | Not found | Browse or go home |
+
+### Dashboard routes
+
+All dashboard routes are protected and share `DashboardLayout`, which shows the
+role-aware section tabs. The tabs scroll horizontally on a phone so no section
+is hidden in a menu.
+
+| Route | Section | Notes |
+|---|---|---|
+| `/dashboard` | Overview | Account details, separate verification states, role-aware shortcuts |
+| `/dashboard/products` | My products | Farmer-only list; edit, mark sold and hide with status words |
+| `/dashboard/products/new` | Add product | Farmer-only create form with optional photo upload |
+| `/dashboard/products/:id/edit` | Edit product | Farmer-only; owner checked before the form is shown |
+| `/dashboard/requests` | Requests | Clearly labelled placeholder until Step 10 |
+| `/dashboard/orders` | Orders | Clearly labelled placeholder until Step 11 |
+| `/dashboard/saved` | Saved | Buyer-only saved listings with remove action |
+| `/dashboard/messages` | Messages | Clearly labelled placeholder until Step 12 |
+| `/dashboard/profile` | Profile | Edit account/farm/business details, add a role, see verification states |
+
+A missing role shows an explanatory notice instead of calling the wrong
+endpoint. Requests, orders and messages are reachable but intentionally do not
+pretend to work yet. See `docs/step9-dashboards.md` for the mobile-tab choice
+and its `[review]` note.
 
 The contact details shown on `/contact` and `/privacy` are placeholders that
 need founder confirmation. See `docs/step7-public-content.md` for the `[review]`
@@ -72,6 +97,8 @@ list.
 
 - `src/lib/api.ts` wraps `fetch`, builds query strings, parses JSON and throws a
   typed `ApiError` with the HTTP status. Writes send `X-CSRFToken`.
+  `apiDelete` handles bookmark removal and `apiUpload` sends listing photos as
+  `FormData` without a JSON content type header.
 - `src/lib/csrf.ts` fetches `/api/auth/csrf/` and keeps the token; it is
   re-fetched after login, registration and logout because Django rotates it.
 - `src/lib/useApi.ts` handles loading/error state and aborts stale requests.
@@ -90,10 +117,15 @@ list.
   crafted link cannot redirect to another site.
 - On a product page, "contact the farmer" opens the login gate from guide
   section 4. After login or registration the visitor returns to the same
-  listing. Signed-in visitors see a "messaging is coming" panel until the deals
-  step ships.
+  listing. Signed-in buyers can save/unsave the listing; the "messaging is
+  coming" panel remains until the deals step ships.
 - One account can be a buyer, a farmer or both. The register form offers the
-  three choices and shows farm or business fields as needed.
+  three choices and shows farm or business fields as needed. The dashboard
+  profile can add the missing role through `PATCH /api/auth/roles/`; roles are
+  additions-only and the auth context refreshes after a successful upgrade.
+- The overview and profile show email confirmation, identity review and
+  cooperative verification as three separate states. A check mark never stands
+  for "verified farmer" on its own.
 - Form errors from DRF are mapped to the matching field by
   `src/lib/apiErrors.ts`; `429` responses get a dedicated rate-limit message.
 
@@ -101,6 +133,14 @@ list.
 
 The rates, session length and remaining copy that need a founder decision are
 listed in `docs/step8-auth.md`.
+
+## Step 9 review notes
+
+The dashboard tab pattern, dual-role landing, verification display, role
+upgrades, saved-product behaviour and photo limits are recorded in
+`docs/step9-dashboards.md`. The main open decisions are the deviation from the
+drafted bottom-tab + More sheet, the dual-role landing page, and native review
+of the new Kinyarwanda copy.
 
 ## Colour palette
 
@@ -161,6 +201,12 @@ the home page, marketplace filters and pagination state, the contact form
 (validation, payload, rate limit and server errors), the not-found page, and the
 Step 8 auth flows: login/return path, registration (single and dual role),
 forgot/reset password, email verification, protected routes, redirect safety and
-the signed-in header menu. API calls are mocked with a small fetch double in
-`src/test/apiMock.ts`; `src/test/auth.tsx` adds a signed-in user fixture and
-wraps components in `AuthProvider`.
+the signed-in header menu.
+
+Step 9 adds tests for the role-aware dashboard tabs, farmer listing list and
+status actions, product create form payload, saved-product list and removal,
+profile update/role upgrade/verification rows, and product save/unsave. API
+calls are mocked with a small fetch double in `src/test/apiMock.ts`;
+`src/test/auth.tsx` adds a signed-in user fixture and wraps components in
+`AuthProvider`. The full run uses a 15-second per-test timeout because the
+larger jsdom suite can be slow on development machines.

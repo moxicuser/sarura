@@ -55,7 +55,9 @@ async function request<T>(
     ...init,
     headers: {
       Accept: "application/json",
-      ...(init.body ? { "Content-Type": "application/json" } : {}),
+      ...(init.body && !(typeof FormData !== "undefined" && init.body instanceof FormData)
+        ? { "Content-Type": "application/json" }
+        : {}),
       ...(csrfToken ? { "X-CSRFToken": csrfToken } : {}),
       ...init.headers,
     },
@@ -89,6 +91,19 @@ export function apiPatch<T>(path: string, body: unknown, signal?: AbortSignal): 
   return request<T>(path, {
     method: "PATCH",
     body: JSON.stringify(body),
+    signal,
+  });
+}
+
+export function apiDelete<T = null>(path: string, signal?: AbortSignal): Promise<T> {
+  return request<T>(path, { method: "DELETE", signal });
+}
+
+/** Upload listing photos as multipart/form-data; no JSON content type is set. */
+export function apiUpload<T>(path: string, body: FormData, signal?: AbortSignal): Promise<T> {
+  return request<T>(path, {
+    method: "POST",
+    body,
     signal,
   });
 }

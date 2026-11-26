@@ -20,6 +20,7 @@ from accounts.serializers import (
     PasswordResetConfirmSerializer,
     PasswordResetRequestSerializer,
     RegisterSerializer,
+    RoleUpdateSerializer,
     UserSerializer,
     VerifyEmailSerializer,
 )
@@ -99,6 +100,18 @@ class MeView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+
+
+class RoleUpdateView(APIView):
+    """Add a buyer or farmer role without letting a user remove one."""
+
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request):
+        serializer = RoleUpdateSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return Response(UserSerializer(user, context={"request": request}).data)
 
 
 class PasswordResetRequestView(APIView):

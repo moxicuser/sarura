@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import { DashboardLayout } from "./components/dashboard/DashboardLayout";
 import { PublicLayout } from "./components/layout/PublicLayout";
 import { AuthProvider } from "./lib/auth";
 import { AboutPage } from "./pages/AboutPage";
@@ -20,6 +21,11 @@ import { RegisterPage } from "./pages/RegisterPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { SellPage } from "./pages/SellPage";
 import { VerifyEmailPage } from "./pages/VerifyEmailPage";
+import { MyProductsPage } from "./pages/dashboard/MyProductsPage";
+import { PlaceholderSectionPage } from "./pages/dashboard/PlaceholderSectionPage";
+import { ProductFormPage } from "./pages/dashboard/ProductFormPage";
+import { ProfilePage } from "./pages/dashboard/ProfilePage";
+import { SavedProductsPage } from "./pages/dashboard/SavedProductsPage";
 
 export function AppRoutes() {
   return (
@@ -43,7 +49,20 @@ export function AppRoutes() {
         <Route path="sell" element={<SellPage />} />
 
         <Route element={<ProtectedRoute />}>
-          <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="dashboard" element={<DashboardLayout />}>
+            <Route index element={<DashboardPage />} />
+            <Route path="products" element={<MyProductsPage />} />
+            <Route path="products/new" element={<ProductFormPage />} />
+            <Route path="products/:id/edit" element={<ProductFormPage />} />
+            <Route
+              path="requests"
+              element={<PlaceholderSectionPage section="requests" />}
+            />
+            <Route path="orders" element={<PlaceholderSectionPage section="orders" />} />
+            <Route path="saved" element={<SavedProductsPage />} />
+            <Route path="messages" element={<PlaceholderSectionPage section="messages" />} />
+            <Route path="profile" element={<ProfilePage />} />
+          </Route>
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />
